@@ -1,0 +1,43 @@
+<section style="display: flex; flex-wrap: wrap; flex-direction: row;">
+  @for (post of posts; track post.id) {
+  <div [ngStyle]="{
+  'border': post.deleted ? '3px solid red' : (post.valid === false ? '3px solid blue' : '3px solid black'),
+  'padding': '30px',
+  'margin': '5px 0 5px 0',
+  'display': 'flex',
+  'flex-direction': 'row',
+  'flex-wrap': 'wrap'
+  }" class="post-card">
+    <ul style="overflow-wrap: anywhere;">
+      <li style="margin: 0 0 10px 0;">{{ post.id }} - {{ post.created_at | date:'dd-MM-yyyy'  }} - {{ post.categorie }}  - {{ post.visite }} vues</li>
+      <li style="margin: 0 0 10px 0; font-weight: 700;">{{ post.titre }}</li>
+      <li><img [src]="post.image_url" alt="Image preview"></li>
+      <li style="margin: 0 0 10px 0;border: 1px solid gray;">{{ post.description_meteo }}</li>
+      <li style="margin: 0 0 10px 0;border: 1px solid gray;" [innerHTML]="post.phrase_accroche"></li>
+      <li style="margin: 0 0 10px 0;" [innerHTML]="post.article"></li>
+      <li style="margin: 0 0 10px 0;background-color: aliceblue; padding: 3px;">{{ post.citation }}</li>
+      <li style="margin: 0 0 10px 0;"> <a [href]="post.lien_url_article" aria-label="lien vers article complet"
+                             target="_blank" style="color: #28a745;">{{ post.lien_url_article }}</a></li>
+
+    </ul>
+    <div>
+     @if (!post.deleted) {
+      <button style="background-color:red; margin: 0 10px 0 0; padding: 10px;" (click)="deletePostById(post.id)">supprimer</button>
+    }
+      <button style="margin: 0 10px 0 0;padding: 10px;" (click)="editPostById(post.id)">Editer</button>
+
+       @if (!post.valid) {
+          <button  style="background-color:lightBlue;padding: 10px;" (click)="validPostById(post.id)">valider</button>
+      }
+
+    </div>
+  </div>
+  } @empty {
+  <li>There are no items.</li>
+  }
+</section>
+
+
+
+
+

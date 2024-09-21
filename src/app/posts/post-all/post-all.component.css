@@ -1,0 +1,12 @@
+.post-card {
+  width: 32%; /* Par défaut pour les écrans larges */
+}
+
+@media (max-width: 768px) { /* Ajustez la largeur pour les petits écrans */
+  .post-card {
+    width: 100%; /* Pleine largeur pour mobile */
+  }
+}
+.cdk-global-overlay-wrapper, .cdk-overlay-container {
+  z-index: 99999 !important;
+}
