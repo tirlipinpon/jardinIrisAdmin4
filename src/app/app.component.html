@@ -1,8 +1,11 @@
-<h1>Angular Router App</h1>
 <nav>
-  <ul>
-    <li><a routerLink="/add-new-post" routerLinkActive="active" ariaCurrentWhenActive="page">add-new-post</a></li>
-    <li><a routerLink="/get-all-post" routerLinkActive="active" ariaCurrentWhenActive="page">get-all-post</a></li>
+  <ul style="display: flex;
+    justify-content: space-around;
+    align-items: center;
+    width: 100%;
+    font-size: 21px;     margin: 30px 0 30px 0;">
+    <li><a routerLink="/add-new-post" routerLinkActive="active" ariaCurrentWhenActive="page">Ajouter</a></li>
+    <li><a routerLink="/get-all-post" routerLinkActive="active" ariaCurrentWhenActive="page">Editer/supprimer</a></li>
   </ul>
 </nav>
 <!-- The routed views render in the <router-outlet>-->
