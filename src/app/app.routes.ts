@@ -7,7 +7,7 @@ export const routes: Routes = [
     loadComponent: () => import('./posts/post-all/post-all.component').then(m => m.PostAllComponent), title: 'get-all-post',
     children: [
       {
-        path: 'edit-old-post/:id', // child route path
+        path: 'edit-old-post/:postId', // child route path
         loadComponent: () => import('./posts/post-edit/post-edit.component').then(m => m.PostEditComponent),
         title: 'edit-old-post'
       }
