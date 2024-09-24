@@ -3,7 +3,6 @@ import {CommonModule} from "@angular/common";
 import {Router, RouterLink, RouterLinkActive, RouterModule, RouterOutlet} from "@angular/router";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
 import {SupabaseService} from "../../services/supabase/supabase.service";
-import {UpdatePostByIdSubService} from "../../shared/updateComponentWhenPostChanged/update-post-by-id-sub.service";
 import {MatDialog} from "@angular/material/dialog";
 import {
   DialogDeletePostConfirmComponent
@@ -20,15 +19,11 @@ export class PostAllComponent implements OnInit {
   posts: any[] = [];
   readonly dialogDeleteConfirm = inject(MatDialog);
 
-  constructor(private supabaseService: SupabaseService, private updatePostByIdSubService: UpdatePostByIdSubService, private router: Router) {
+  constructor(private supabaseService: SupabaseService, private router: Router) {
   }
 
   ngOnInit() {
     this.refreshDataGetManyPosts();
-    // this.updatePostByIdSubService.notifyParent$.subscribe((value) => {
-    //   console.log(value);
-    //   this.refreshDataGetManyPosts();
-    // });
   }
 
   refreshDataGetManyPosts(){
@@ -38,23 +33,23 @@ export class PostAllComponent implements OnInit {
     })
   }
 
-  openDialog(postId: number) {
+  openDialog(post: any) {
     const dialogRef = this.dialogDeleteConfirm.open(DialogDeletePostConfirmComponent, {
       data: {
-        idPost: postId,
+        post: post,
       },
     });
 
     dialogRef.afterClosed().subscribe(result => {
       console.log(`Dialog result: ${result}`);
       if(result) {
-        this.callDeleteAndRefresh(postId)
+        this.callDeleteAndRefresh(post.id)
       }
     });
   }
 
-  deletePostById(postId: number) {
-    this.openDialog(postId)
+  deletePost(post: any) {
+    this.openDialog(post)
   }
 
   callDeleteAndRefresh(postId: number) {

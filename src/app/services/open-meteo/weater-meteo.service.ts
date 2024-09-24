@@ -10,7 +10,7 @@ export class WeaterMeteoService {
   constructor(private openaiService: OpenaiService) {
   }
 
-  async callWeatherMeteoAndOpenAi(url_post: string): Promise<any> {
+  async callWeatherMeteoAndOpenAi(url_post: string, urlImage?: string): Promise<any> {
     try {
       // Attendre que weatherFunction se termine
       const weatherData = await this.weatherFunction().then(response => {
@@ -18,7 +18,7 @@ export class WeaterMeteoService {
         }
       );
       // Attendre que main se termine après weatherFunction
-      return await this.openaiService.callMainOpenAi(weatherData, url_post);
+      return await this.openaiService.callMainOpenAiResumeArticle(weatherData, url_post, urlImage);
     } catch (error) {
       // Gérer les erreurs potentielles des fonctions asynchrones
       console.error('Une erreur est survenue:', error);

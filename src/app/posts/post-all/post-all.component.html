@@ -1,7 +1,7 @@
 <section style="display: flex; flex-wrap: wrap; flex-direction: row;">
   @for (post of posts; track post.id) {
   <div [ngStyle]="{
-  'border': post.deleted ? '3px solid red' : (post.valid === false ? '3px solid blue' : '3px solid black'),
+  'border': post.deleted ? '6px solid red' : (post.valid === false ? '6px solid blue' : '6px solid black'),
   'padding': '30px',
   'margin': '5px 0 5px 0',
   'display': 'flex',
@@ -22,7 +22,7 @@
     </ul>
     <div>
      @if (!post.deleted) {
-      <button style="background-color:red; margin: 0 10px 0 0; padding: 10px;" (click)="deletePostById(post.id)">supprimer</button>
+      <button style="background-color:red; margin: 0 10px 0 0; padding: 10px;" (click)="deletePost(post)">supprimer</button>
     }
       <button style="margin: 0 10px 0 0;padding: 10px;" (click)="editPostById(post.id)">Editer</button>
 

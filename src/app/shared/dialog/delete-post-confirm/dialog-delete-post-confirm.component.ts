@@ -7,16 +7,17 @@ import {
   MatDialogContent,
   MatDialogTitle
 } from "@angular/material/dialog";
-import {NgIf} from "@angular/common";
+import {DatePipe, NgIf} from "@angular/common";
+import {getFormattedDate} from "../../../utils/getUTCFormattedDate";
 
 @Component({
   selector: 'app-dialog-delete-post-confirm',
   templateUrl: 'dialog-delete-post-confirm.component.html',
   standalone: true,
-  imports: [MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose, MatButtonModule, NgIf],
+  imports: [MatDialogTitle, MatDialogContent, MatDialogActions, MatDialogClose, MatButtonModule, NgIf, DatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DialogDeletePostConfirmComponent {
   data = inject(MAT_DIALOG_DATA);
-
+  protected readonly getFormattedDate = getFormattedDate;
 }
