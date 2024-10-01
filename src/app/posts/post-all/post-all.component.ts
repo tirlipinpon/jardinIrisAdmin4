@@ -7,17 +7,21 @@ import {MatDialog} from "@angular/material/dialog";
 import {
   DialogDeletePostConfirmComponent
 } from "../../shared/dialog/delete-post-confirm/dialog-delete-post-confirm.component";
+import {MatOption} from "@angular/material/autocomplete";
+import {MatSelectChange, MatSelectModule} from "@angular/material/select";
+import {MatFormFieldModule} from "@angular/material/form-field";
 
 @Component({
   selector: 'app-post-all',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, RouterModule, FormsModule, ReactiveFormsModule],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, RouterModule, FormsModule, ReactiveFormsModule, MatOption, MatFormFieldModule, MatSelectModule],
   templateUrl: './post-all.component.html',
   styleUrl: './post-all.component.css'
 })
 export class PostAllComponent implements OnInit {
   posts: any[] = [];
   readonly dialogDeleteConfirm = inject(MatDialog);
+  matSelectedOption = "";
 
   constructor(private supabaseService: SupabaseService, private router: Router) {
   }
@@ -26,8 +30,8 @@ export class PostAllComponent implements OnInit {
     this.refreshDataGetManyPosts();
   }
 
-  refreshDataGetManyPosts(){
-    this.supabaseService.getOneOrManyPostForm().then((response) => {
+  refreshDataGetManyPosts() {
+    this.supabaseService.getOneOrManyPostForm(0, this.matSelectedOption).then((response) => {
       console.log(response)
       this.posts = response;
     })
@@ -42,7 +46,7 @@ export class PostAllComponent implements OnInit {
 
     dialogRef.afterClosed().subscribe(result => {
       console.log(`Dialog result: ${result}`);
-      if(result) {
+      if (result) {
         this.callDeleteAndRefresh(post.id)
       }
     });
@@ -69,5 +73,12 @@ export class PostAllComponent implements OnInit {
       this.refreshDataGetManyPosts();
     })
   }
+
+  triggerSelectChange(valueSelected: any) {
+    this.matSelectedOption = valueSelected.value;
+    console.log(this.matSelectedOption)
+    this.refreshDataGetManyPosts();
+  }
+
 
 }

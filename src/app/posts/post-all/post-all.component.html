@@ -1,3 +1,14 @@
+<mat-form-field>
+  <mat-label>Select an option</mat-label>
+  <mat-select [(value)]="matSelectedOption" (selectionChange)="triggerSelectChange($event)">
+    <mat-option value="created_at">date (recent en premier)</mat-option>
+    <mat-option value="valid">posts à valider</mat-option>
+    <mat-option value="visite">vues</mat-option>
+    <mat-option value="deleted">posts supprimé</mat-option>
+    <mat-option value="id">id</mat-option>
+  </mat-select>
+</mat-form-field>
+
 <section style="display: flex; flex-wrap: wrap; flex-direction: row;">
   @for (post of posts; track post.id) {
   <div [ngStyle]="{

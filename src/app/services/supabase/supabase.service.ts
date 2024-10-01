@@ -28,15 +28,24 @@ export class SupabaseService {
     }
   }
 
-  async getOneOrManyPostForm(idPost?: number) {
+  async getOneOrManyPostForm(idPost?: number, orderBySelected?: string) {
     try {
       let query = this.supabase
         .from('post')
         .select('*')
-        .order('created_at', { ascending: false });
 
-      if (idPost) {
+      if (idPost && idPost>0) {
         query = query.eq('id', idPost);
+      }
+
+      if (orderBySelected) {
+        if(orderBySelected==='valid'){
+          query = query.order(orderBySelected, { ascending: true });
+        }else {
+          query = query.order(orderBySelected, { ascending: false });
+        }
+      } else {
+        query = query.order('created_at', { ascending: false });
       }
 
       const { data, error } = await query;
@@ -45,13 +54,13 @@ export class SupabaseService {
         throw error;
       }
 
-      // Tri des données par le champ "deleted" après récupération
-      const sortedData = data.sort((a: any, b: any) => {
-        return a.deleted - b.deleted;
-      });
-
-      console.log(sortedData);
-      return sortedData;
+      // // Tri des données par le champ "deleted" après récupération
+      // const sortedData = data.sort((a: any, b: any) => {
+      //   return a.deleted - b.deleted;
+      // });
+      //
+      // console.log(sortedData);
+      return data;
     } catch (error) {
       throw error;
     }
