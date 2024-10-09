@@ -139,6 +139,38 @@ export class SupabaseService {
     }
   }
 
+  async deleteCommentById(id: number) {
+    try {
+      const { data, error } = await this.supabase
+        .from('comments')
+        .update({ valide: 'false' })
+        .eq('id', id)
+
+      if (error) {
+        throw error;
+      }
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async valideCommentById(id: number) {
+    try {
+      const { data, error } = await this.supabase
+        .from('comments')
+        .update({ valide: 'true' })
+        .eq('id', id)
+
+      if (error) {
+        throw error;
+      }
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
 
 
 }

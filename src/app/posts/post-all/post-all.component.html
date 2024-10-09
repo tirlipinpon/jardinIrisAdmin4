@@ -47,7 +47,7 @@
 
       <!--      comments blok    -->
       <div>
-        <button *ngIf="post.comments.length" class="accordionComments">Voir les commentaires ( {{post.comments.length}} ) </button>
+        <button *ngIf="post.comments.length" class="accordionComments">{{post.comments.length}} commentaire dont {{ getValidCommentsCount(post) }}  commentaire valide</button>
 
         <div class="panelComments col-lg-12 col-md-12 col-sm-12 review-block">
           <div class="customer-review">
@@ -63,8 +63,10 @@
       </figure>
       <div class="inner p_relative pl_50">
         <h5 class="p_relative d_block fs_16 lh_26 fw_medium mb_7" style="display:flex">
-  {{ comment.name }} &nbsp;&nbsp;&nbsp;
-  <span class="d_iblock fs_15 fw_normal">{{ comment.created_at | date: 'dd-MM-yyyy' }} &nbsp;&nbsp;&nbsp;</span>
+          {{ comment.id}} - {{ comment.name }} &nbsp;&nbsp;&nbsp;
+        <span class="d_iblock fs_15 fw_normal">{{ comment.created_at | date: 'dd-MM-yyyy' }} &nbsp;&nbsp;&nbsp;</span>
+        <button *ngIf="comment.valide" style="height: 27px;background-color: red;color: white;" (click)="deleteCommentById(comment)">X</button>
+        <button *ngIf="!comment.valide" style="height: 27px;background-color: green;color: black;" (click)="valideCommentById(comment)">v</button>
         </h5>
         <p class="fs_15 lh_26">{{ comment.comment }}</p>
       </div>
@@ -87,8 +89,10 @@
             </figure>
             <div class="inner p_relative pl_50">
               <h5 class="p_relative d_block fs_16 lh_26 fw_medium mb_7" style="display:flex">
-  {{ reply.name }} &nbsp;&nbsp;&nbsp;
-  <span class="d_iblock fs_15 fw_normal">{{ reply.created_at | date: 'dd-MM-yyyy' }} &nbsp;&nbsp;&nbsp;</span>
+              {{ reply.id}} - {{ reply.name }}
+              <span class="d_iblock fs_15 fw_normal">{{ reply.created_at | date: 'dd-MM-yyyy' }} &nbsp;&nbsp;&nbsp;</span>
+              <button *ngIf="reply.valide" style="height: 27px;background-color: red;color: white;" (click)="deleteCommentById(reply)">X</button>
+              <button *ngIf="!reply.valide" style="height: 27px;background-color: green;color: black;" (click)="valideCommentById(reply)">v</button>
               </h5>
               <p class="fs_15 lh_26"><b>{{ comment.name }}</b> {{ reply.comment }}</p>
             </div>

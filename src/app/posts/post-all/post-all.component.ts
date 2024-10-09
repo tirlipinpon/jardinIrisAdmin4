@@ -1,4 +1,4 @@
-import {AfterViewChecked, Component, inject, OnInit} from '@angular/core';
+import {AfterViewChecked, ChangeDetectorRef, Component, inject, OnInit} from '@angular/core';
 import {CommonModule} from "@angular/common";
 import {Router, RouterLink, RouterLinkActive, RouterModule, RouterOutlet} from "@angular/router";
 import {FormsModule, ReactiveFormsModule} from "@angular/forms";
@@ -10,11 +10,15 @@ import {
 import {MatOption} from "@angular/material/autocomplete";
 import {MatSelectModule} from "@angular/material/select";
 import {MatFormFieldModule} from "@angular/material/form-field";
+import {
+  DialogDeleteCommentConfirmComponent
+} from "../../shared/dialog/delete-comment-confirm/dialog-delete-comment-confirm.component";
 
 @Component({
   selector: 'app-post-all',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, RouterModule, FormsModule, ReactiveFormsModule, MatOption, MatFormFieldModule, MatSelectModule],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive, RouterModule, FormsModule,
+    ReactiveFormsModule, MatOption, MatFormFieldModule, MatSelectModule],
   templateUrl: './post-all.component.html',
   styleUrl: './post-all.component.css'
 })
@@ -23,7 +27,7 @@ export class PostAllComponent implements OnInit, AfterViewChecked {
   readonly dialogDeleteConfirm = inject(MatDialog);
   matSelectedOption = "";
 
-  constructor(private supabaseService: SupabaseService, private router: Router) {
+  constructor(private supabaseService: SupabaseService, private router: Router, private cdRef: ChangeDetectorRef) {
   }
 
   ngOnInit() {
@@ -71,10 +75,6 @@ export class PostAllComponent implements OnInit, AfterViewChecked {
       // Récupérer les posts et les commentaires
       const responsePost = await this.supabaseService.getOneOrManyPostForm(0, this.matSelectedOption);
       const responseComments = await this.supabaseService.getAllComments();
-
-      console.log('Posts:', responsePost);
-      console.log('Comments:', responseComments);
-
       // Attacher les commentaires à chaque post
       const postsWithComments = responsePost.map(post => {
         return {
@@ -82,9 +82,9 @@ export class PostAllComponent implements OnInit, AfterViewChecked {
           comments: responseComments.filter(comment => comment.fk_post === post.id) // Associer les commentaires liés
         };
       });
-
       // Mettre à jour les données locales avec les posts modifiés
       this.postsWithComments = postsWithComments;
+      this.cdRef.detectChanges();
       console.log('Posts with Comments:', this.postsWithComments);
     } catch (error) {
       console.error('Erreur lors de la récupération des données', error);
@@ -92,32 +92,34 @@ export class PostAllComponent implements OnInit, AfterViewChecked {
   }
 
 
-  openDialog(post: any) {
+  openDialogDeletePost(post: any) {
     const dialogRef = this.dialogDeleteConfirm.open(DialogDeletePostConfirmComponent, {
       data: {
         post: post,
       },
     });
-
     dialogRef.afterClosed().subscribe(result => {
       console.log(`Dialog result: ${result}`);
       if (result) {
-        this.callDeleteAndRefresh(post.id)
+        this.callDeleteAndRefreshPosts(post.id)
       }
     });
   }
 
   deletePost(post: any) {
-    this.openDialog(post)
+    this.openDialogDeletePost(post)
   }
 
-  callDeleteAndRefresh(postId: number) {
+  callDeleteAndRefreshPosts(postId: number) {
     this.supabaseService.deletePostByIdForm(postId).then(r => {
-      console.log(r)
       this.refreshDataGetManyPosts();
     })
   }
-
+  callDeleteCommentAndRefreshPosts(commentId: number) {
+    this.supabaseService.deleteCommentById(commentId).then(r => {
+      this.refreshDataGetManyPosts();
+    })
+  }
   editPostById(postId: number) {
     this.router.navigate(['/edit-old-post', postId]);
   }
@@ -132,6 +134,33 @@ export class PostAllComponent implements OnInit, AfterViewChecked {
   triggerSelectChange(valueSelected: any) {
     this.matSelectedOption = valueSelected.value;
     this.refreshDataGetManyPosts();
+  }
+
+  openDialogDeleteComment(comment: any) {
+    const dialogRef = this.dialogDeleteConfirm.open(DialogDeleteCommentConfirmComponent, {
+      data: {
+        comment: comment,
+      },
+    });
+    dialogRef.afterClosed().subscribe(result => {
+      if (result) {
+        this.callDeleteCommentAndRefreshPosts(comment.id)
+      }
+    });
+  }
+
+  deleteCommentById(comment: any) {
+    this.openDialogDeleteComment(comment)
+  }
+
+  valideCommentById(comment: any) {
+    this.supabaseService.valideCommentById(comment.id).then(r => {
+      this.refreshDataGetManyPosts();
+    })
+  }
+
+  getValidCommentsCount(post: any): number {
+    return post.comments ? post.comments.filter((comment: any) => comment.valide).length : 0;
   }
 
 
