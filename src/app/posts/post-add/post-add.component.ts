@@ -40,7 +40,7 @@ export class PostAddComponent implements OnInit{
       citation: ['', Validators.required],
       lien_url_article: ['', Validators.required],
       categorie: ['', Validators.required],
-      image_url: ['', Validators.required],
+      image_url: ['', Validators.required]
     });
   }
 

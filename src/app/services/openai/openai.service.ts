@@ -17,12 +17,7 @@ export class OpenaiService {
         {
           "role": "system",
           "content": "Vous êtes un expert jardinier en rédaction de blogs spécialisés en format json, avec une solide expérience en SEO et jardinier paysagiste. " +
-            "Vous avez accès à des données spécifiques concernant la période actuelle, et un article que vous devrez résumer."
-        },
-        {
-          "role": "user",
-          "content":
-            "Rédige une réponse en JSON, d’un article de blog détaillé avec une touche d'humour comme si tu étais un jardinier paysagiste sur base de ce lien : (" + url_post + "). " +
+            "Vous avez accès à des données spécifiques concernant la période actuelle, et un article que vous devrez réecrire pour le site."+
             "Ne rajoute aucune info de plus que ce qui est déjà écrit " +
             "Ta réponse doit être en JSON valide strict " +
             "et où chaque clé/valeur du JSON est sur une ligne (commence par la parenthèse ouvrante et fini par la parenthèse fermante et rien d'autre, " +
@@ -38,23 +33,31 @@ export class OpenaiService {
             "  \"image_url\": \"\",\n" +
             "  \"categorie\": \"\",\n" +
             "  \"visite\": \"" + Math.floor(Math.random() * (10 - 2) + 2) + "\"\n" +
-            "}\n" +
-            "Voici les données :" + weatherData + " La structure du blog doit avoir 6 parties distinctes: " +
+            "}\n"
+        },
+        {
+          "role": "user",
+          "content":
+            "Voici les données :" + weatherData + " La structure du blog doit avoir ces parties distinctes: " +
+            "Rédige une réponse en JSON, d’un article de blog détaillé avec une touche d'humour comme si tu étais un jardinier paysagiste sur base de ce lien : (" + url_post + "). " +
             "1. La created_at = " + getFormattedDate() + "" +
             "2. Un titre de +- 10 mots, " +
             "3. Description météo à Bruxelles de +- 35 mots, " +
             "4. Une phrase d'accroche de +- 40 mots, avec les 3 mots les plus importants entre les balises html <b></b> " +
-            "5. **L'article doit impérativement comporter un minimum de 300 mots**, sans aucun retour à la ligne excepté entre les deux parties. " +
-            "   Utilise des balises <span> pour entourer chaque partie, et insère une balise <br id='link_to_service'> entre les deux parties. " +
-            "   Chaquune des deux parties doit absolument contenir une phrase entièrre importante mise en évidence avec des balises html <b></b>. " +
-            "   **L'article ne doit pas être inférieur à 300 mots**, il doit respecter les exigences strictement." +
+            "5. **L'article doit impérativement comporter un minimum de 500 mots**, sans aucun retour à la ligne excepté entre les 5 parties. " +
+            "   Utilise des balises <span> pour entourer chaqune des 5 parties, et insère une balise <br id='link_to_service'> entre le troisieme et la quatrieme  parties. " +
+            "   Chacune des 5 parties doit absolument contenir un titre d'accroche de paragraphe <h4></h4> et sous le titre une phrase de question dans un <ul><li> sur le context du chapitre " +
+            "et une phrase entièrre importante mise en évidence avec des balises html <b></b>. " +
+            "   **L'article ne doit pas être inférieur à 500 mots**, il doit respecter les exigences strictement et chaque contenu de chapitre doit etre tres detaiilé et precis sur le sujet, avec des information technique," +
             "6. Une citation connue en lien avec l'article et le nom de l'auteur. " +
             "7. Le lien que je t'ai donné : " + url_post + " " +
             "8. image_url : " +( urlImage?.length?urlImage:null) +
             "9. Un choix de catégorie adapté entre jardin, nature, écologie et potager."
         }
       ],
-      model: "gpt-4o"
+      model: "gpt-4o",
+      max_tokens: 1200,
+      temperature: 0.8,
     });
     console.log('weatherData= '+weatherData);
     console.log('completion.choices[0]= '+completion.choices[0]);
@@ -69,12 +72,12 @@ export class OpenaiService {
           "content":
             "Tu es un assistant expert en évaluation d'articles pour un blog de jardinier paysagiste en Belgique. "+
             "Ta tâche est d'analyser une liste d'articles pour déterminer s'il y a un article pertinent pour un blog spécialisé dans les thèmes du jardinage, "+
-            "de la nature, de l'écologie, des plantes, et du potager. Le blog est destiné à un public en Belgique."+
+            "ou de la nature, ou de l'écologie, ou des plantes, ou du potager, ou aux arbres, ou aux fleurs. Le blog est destiné à un public en Belgique."+
             "\n\nCritères de pertinence :\n"+
-            "- Le contenu doit être directement lié au jardinage, à l'écologie, aux plantes, ou au potager.\n"+
-            "- L'article doit être adapté au contexte belge (climat, faune, flore, pratiques locales).\n"+
-            "- Le ton et le style doivent être informatifs ou pédagogiques, adaptés à des jardiniers amateurs ou professionnels."+
-            "\n\nSi tu trouves un article pertinent, retourne **un seul objet JSON** avec les champs suivants :\n"+
+            "- Le contenu doit être lié au jardinage, à l'écologie, aux plantes, ou au potager.\n"+
+            "- L'article doit être adapté au contexte belge.\n"+
+            "- Le ton et le style doivent être informatifs ou pédagogiques, adaptés à des amateurs ou professionnels."+
+            "\n\nSi tu trouves un article, retourne **un seul objet JSON** avec les champs suivants :\n"+
             "Ta réponse doit être en JSON valide strict " +
             "et où chaque clé/valeur du JSON est sur une ligne (commence par la parenthèse ouvrante et fini par la parenthèse fermante et rien d'autre, " +
             "“Do not wrap the JSON codes in JSON markers or added texte by yourself comments”): just that !->" +
@@ -89,8 +92,8 @@ export class OpenaiService {
             "}\n"+
             "\nL'explication doit inclure une raison pour chaque article analysé, qu'il soit retenu ou non. Le champ 'explication' doit donc contenir des clés de justification pour **chaque article**. "+
             "Par exemple :\n"+
-            "\"raison-article-1\": \"Non pertinent car il parle de l'énergie éolienne, qui n'est pas liée au jardinage.\",\n"+
-            "\"raison-article-2\": \"Pertinent car il parle de la cueillette de courges, une activité liée au potager en Belgique.\"\n"+
+            "\"raison-article-1\": \"Non pertinent car il parle de... .\",\n"+
+            "\"raison-article-2\": \"Pertinent car il parle de... .\"\n"+
             "\nSi aucun article n'est pertinent, retourne un tableau vide []."
         },
         {
@@ -104,8 +107,8 @@ export class OpenaiService {
       model: "gpt-4"
     });
 
-  console.log('newsApiData= '+newsApiData);
-    console.log('completion.choices[0]= '+completion.choices[0]);
+    console.log('newsApiData= '+ JSON.stringify(newsApiData));
+    console.log('completion.choices[0]= '+ JSON.stringify(completion.choices[0]));
     return completion.choices[0].message.content
   }
 

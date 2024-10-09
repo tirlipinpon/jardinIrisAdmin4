@@ -39,9 +39,14 @@ export class SupabaseService {
       }
 
       if (orderBySelected) {
-        if(orderBySelected==='valid'){
+        if(orderBySelected==='valid') {
           query = query.order(orderBySelected, { ascending: true });
-        }else {
+        } else if(orderBySelected==='original') {
+          query = query
+            .eq('valid', true)
+            .eq('deleted', false)
+            .order('created_at', { ascending: false });
+        } else {
           query = query.order(orderBySelected, { ascending: false });
         }
       } else {
@@ -66,6 +71,22 @@ export class SupabaseService {
     }
   }
 
+  async getAllComments() {
+    try {
+      let query = this.supabase
+        .from('comments')
+        .select('*')
+
+      const { data, error } = await query;
+
+      if (error) {
+        throw error;
+      }
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
 
   async deletePostByIdForm(idPost: number) {
     try {

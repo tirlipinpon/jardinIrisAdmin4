@@ -1,4 +1,4 @@
-<section  class="sidebar-page-container p_relative blog-classic">
+<section class="sidebar-page-container p_relative blog-classic">
   <div class="auto-container">
     <div class="row clearfix">
       <div class="col-lg-8 col-md-12 col-sm-12 content-side">
@@ -12,7 +12,8 @@
                       <!-- Date -->
                       <span class="post-date p_relative d_block fs_15 mb_2">
                         <p>Date formatée : {{ createdAtFormatted }}</p>
-                        <textarea formControlName="created_at" class="form-control">{{ postForm.get('created_at')?.value | date:'dd-MM-yyyy' }}</textarea>
+                        <textarea formControlName="created_at"
+                                  class="form-control">{{ postForm.get('created_at')?.value | date:'dd-MM-yyyy' }}</textarea>
                       </span>
 
                       <!-- Titre -->
@@ -83,7 +84,7 @@
                         </h4>
                       </blockquote>
 
-                      <button  type="submit" class="btn btn-primary">Soumettre</button>
+                      <button type="submit" class="btn btn-primary">Soumettre</button>
                     </div>
                   </div>
                 </div>

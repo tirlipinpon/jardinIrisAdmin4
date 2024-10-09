@@ -1,0 +1,22 @@
+<mat-stepper orientation="vertical" [linear]="false" #stepper>
+  <mat-step label="Step 0">
+      <ng-template matStepLabel>etape 0</ng-template>
+  </mat-step>
+  <mat-step label="Step 1">
+    <ng-template matStepLabel>etape 1</ng-template>
+    <p>{{messageToStepper}}</p>
+  </mat-step>
+  <mat-step label="Step 2">
+    <ng-template matStepLabel>etape 2</ng-template>
+    <p>{{messageToStepper}}</p>
+  </mat-step>
+  <mat-step label="Step 3">
+    <ng-template matStepLabel>etape 3</ng-template>
+    <p>{{messageToStepper}}</p>
+  </mat-step>
+  <mat-step>
+    <ng-template matStepLabel>Fini</ng-template>
+    <p>{{messageToStepper}}</p>
+  </mat-step>
+</mat-stepper>
+

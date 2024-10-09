@@ -7,12 +7,14 @@
 
 <section>
   <div>
-    <input type="text" [(ngModel)]="url_post" placeholder="mettre le lien URL de l article ici." size="50" style="    padding: 20px;
+    <input type="text" [(ngModel)]="url_post" placeholder="mettre le lien URL de l article ici." size="50" style="
+    padding: 20px;
     font-size: 15px;
     width: 100%;">
   </div>
   <div>
-    <button *ngIf="url_post.length" (click)="callApis()" [disabled]="isLoading" style="    padding: 20px;
+    <button *ngIf="url_post.length" (click)="callApis()" [disabled]="isLoading" style="
+    padding: 20px;
     width: 100%;
     font-size: 22px;
     margin: 20px 0 0 0;

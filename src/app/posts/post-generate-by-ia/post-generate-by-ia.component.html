@@ -1,11 +1,14 @@
-<button (click)="clickToGenerate()">generate news</button>
+<button (click)="clickToGenerate()" style="
+    width: 100%;
+    padding: 10px;
+    font-size: 20px;">Chercher une nouvelle news </button>
 
-  <div>
-    <span>{{selectedArticle?.valide}}</span><br/>
-    <span>{{selectedArticle?.explication}}</span><br/>
-    <a href="{{selectedArticle?.url}}" target="_blank">lien</a><br/>
-    <img src="{{selectedArticle?.image_url}}" alt="" width="200px">
 
-  </div>
+<app-stepper-create-by-ia [goStep]="stepValue" [messageToStepper]="messageToStepper"></app-stepper-create-by-ia>
 
+
+<!--<div>-->
+<!--  <button (click)="goBack()" type="button">Back</button>-->
+<!--  <button (click)="goForward()" type="button">Next</button>-->
+<!--</div>-->
 
