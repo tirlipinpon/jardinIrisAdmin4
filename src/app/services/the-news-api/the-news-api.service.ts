@@ -6,7 +6,7 @@ import {Observable} from "rxjs";
   providedIn: 'root'
 })
 export class TheNewsApiService {
-  formatCurrentDate() : any {
+  formatCurrentDate() : string {
     // Crée une nouvelle instance de la date actuelle
     const date = new Date();
 // Récupère l'année, le mois et le jour

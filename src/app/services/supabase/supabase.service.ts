@@ -1,6 +1,7 @@
 import { Injectable } from '@angular/core';
 import {createClient, SupabaseClient} from "@supabase/supabase-js";
 import {environment} from "../../../../environment";
+import {Post} from "../../shared/types/post";
 
 @Injectable({
   providedIn: 'root'
@@ -12,7 +13,7 @@ export class SupabaseService {
     this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey)
   }
 
-  async setNewPostForm(value: any) {
+  async setNewPostForm(value: Post): Promise<any> {
     try {
       const { data, error } = await this.supabase
         .from('post')
@@ -58,13 +59,6 @@ export class SupabaseService {
       if (error) {
         throw error;
       }
-
-      // // Tri des données par le champ "deleted" après récupération
-      // const sortedData = data.sort((a: any, b: any) => {
-      //   return a.deleted - b.deleted;
-      // });
-      //
-      // console.log(sortedData);
       return data;
     } catch (error) {
       throw error;
@@ -122,7 +116,7 @@ export class SupabaseService {
     }
   }
 
-  async updatePostByIdForm(dataPost: any) {
+  async updatePostByIdForm(dataPost: Post) {
     try {
       const { data, error } = await this.supabase
         .from('post')
@@ -166,6 +160,41 @@ export class SupabaseService {
         throw error;
       }
       return data;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getFirstIdeaPostByMonth(month: number, year: number) {
+    const { data, error } = await this.supabase
+      .from('ideaPost')
+      .select('id, description')
+      .gte('created_at', `${year}-${month.toString().padStart(2, '0')}-01`) // Ajout de padStart pour le format
+      .lt('created_at', `${year}-${(month + 1).toString().padStart(2, '0')}-01`) // Gestion du mois suivant
+      .eq('deleted', false)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (error) {
+      console.log(' Erreur lors de la récupération des posts: ' + (error))
+      return error
+    } else {
+      return data;
+    }
+  }
+
+  async updateDeleteIdeaPostById(id: number, fk_idPost: number) {
+    try {
+      const { data, error } = await this.supabase
+        .from('ideaPost')
+        .update({
+          deleted: true,
+          fk_id_post: fk_idPost
+        })
+        .eq('id', id)
+      if (error) {
+        throw error;
+      }
     } catch (error) {
       throw error;
     }

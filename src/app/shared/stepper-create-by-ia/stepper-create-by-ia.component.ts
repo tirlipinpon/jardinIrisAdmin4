@@ -22,7 +22,7 @@ export class StepperCreateByIaComponent implements OnChanges {
   // @ts-ignore
   @ViewChild('stepper') private myStepper: MatStepper;
   @Input() goStep = 0
-  @Input() messageToStepper: any
+  @Input() messageToStepper: string = ''
 
 
   ngOnChanges(changes: SimpleChanges) {

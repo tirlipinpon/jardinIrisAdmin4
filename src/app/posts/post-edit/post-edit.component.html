@@ -59,9 +59,20 @@
                       </div>
 
                       <!-- Article -->
-                      <p class="fs_15 lh_26 mb_40">
-                        <textarea formControlName="article" rows="10" class="form-control"></textarea>
-                      </p>
+                      <span (click)="switchIsCode($event)">switch</span>
+                      <div *ngIf="isEditorTextON; else switchOffEditorText" class="fs_15 lh_26 mb_40 NgxEditor__Wrapper">
+                        <ngx-editor-menu [editor]="editor" [toolbar]="toolbar"> </ngx-editor-menu>
+                        <ngx-editor
+                          [editor]="editor"
+                          formControlName="article"
+                        ></ngx-editor>
+                      </div>
+
+                      <ng-template #switchOffEditorText>
+                        <div class="fs_15 lh_26 mb_40">
+                        <textarea formControlName="article" rows="40" class="form-control"></textarea>
+                  </div>
+                      </ng-template>
 
                       <!-- Lien vers article complet -->
                       <ul class="list clearfix p_rclassNameve d_block mb_35">

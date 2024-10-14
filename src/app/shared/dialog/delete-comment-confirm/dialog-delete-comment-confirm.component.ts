@@ -9,6 +9,7 @@ import {
 } from "@angular/material/dialog";
 import {DatePipe, NgIf} from "@angular/common";
 import {getFormattedDate} from "../../../utils/getUTCFormattedDate";
+import {Comment} from "../../types/comment";
 
 @Component({
   selector: 'app-dialog-delete-post-confirm',
@@ -18,6 +19,6 @@ import {getFormattedDate} from "../../../utils/getUTCFormattedDate";
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DialogDeleteCommentConfirmComponent {
-  data = inject(MAT_DIALOG_DATA);
+  data: any = inject(MAT_DIALOG_DATA);
   protected readonly getFormattedDate = getFormattedDate;
 }

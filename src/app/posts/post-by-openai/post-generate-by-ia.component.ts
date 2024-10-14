@@ -16,7 +16,7 @@ import {StepperCreateByIaComponent} from "../../shared/stepper-create-by-ia/step
 })
 export class PostGenerateByIaComponent {
   stepValue: number = 0;
-  messageToStepper: any = null
+  messageToStepper: string = ''
 
   constructor(private theNewsApiService: TheNewsApiService,
               private openaiService: OpenaiService,
@@ -35,17 +35,17 @@ export class PostGenerateByIaComponent {
       // TODO: step 1
       this.stepValue = 1;
       console.log("getNewsApi OK = " + JSON.stringify(newsData))
-      this.messageToStepper = "Recupération des articles réussies"
+      this.messageToStepper = "Récupération des articles réussies = "+ JSON.stringify(newsData)
       // Appel à OpenAI pour la sélection des articles
       this.openaiService.callMainOpenAiSelectArticleFromNewsApi(newsData).then(response => {
         try {
           const responseData = typeof response === 'string' ? JSON.parse(response) : response;
           if (responseData && typeof responseData === 'object' && 'valide' in responseData) {
             if (responseData.valide === true) {
-              console.log('Un Article validé par chat gpt trouvé:', responseData);
+              console.log('Un Article validé par chat gpt trouvé:', JSON.stringify(responseData) );
               // TODO: step 2
               this.stepValue = 2;
-              this.messageToStepper = 'Un Article validé par chat gpt a été trouvé: '
+              this.messageToStepper = 'Un Article validé par chat gpt a été trouvé: ' + JSON.stringify(responseData)
               this.weaterMeteoService.callWeatherMeteoAndOpenAi(responseData.url, responseData.image_url).then((data: any) => {
                 try {
                   let dataJson = JSON.parse(data);
@@ -71,13 +71,14 @@ export class PostGenerateByIaComponent {
                 }
               }).catch((error) => {
                 // TODO: step ERROR
+                this.stepValue = 1;
                 this.messageToStepper = 'ERROR : Erreur inconnue de open ai = ' +error
                 console.log("error= ", error);
               });
             } else {
               // TODO: step ERROR
-              this.messageToStepper = 'ERROR : L\'article reçu n\'est pas valide '
-              console.log("L'article reçu n'est pas valide.");
+              this.messageToStepper = 'ERROR : L\'article reçu n\'est pas valide ' + JSON.stringify(responseData)
+              console.log("L'article reçu n'est pas valide."+ JSON.stringify(responseData.explication));
             }
           } else {
             // TODO: step ERROR

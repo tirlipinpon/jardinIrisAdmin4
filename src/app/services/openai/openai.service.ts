@@ -17,7 +17,7 @@ export class OpenaiService {
         {
           "role": "system",
           "content": "Vous êtes un expert jardinier en rédaction de blogs spécialisés en format json, avec une solide expérience en SEO et jardinier paysagiste. " +
-            "Vous avez accès à des données spécifiques concernant la période actuelle, et un article que vous devrez réecrire pour le site."+
+            "Vous avez accès à des données spécifiques concernant un article que vous devrez réecrire pour le site."+
             "Ne rajoute aucune info de plus que ce qui est déjà écrit " +
             "Ta réponse doit être en JSON valide strict " +
             "et où chaque clé/valeur du JSON est sur une ligne (commence par la parenthèse ouvrante et fini par la parenthèse fermante et rien d'autre, " +
@@ -39,16 +39,16 @@ export class OpenaiService {
           "role": "user",
           "content":
             "Voici les données :" + weatherData + " La structure du blog doit avoir ces parties distinctes: " +
-            "Rédige une réponse en JSON, d’un article de blog détaillé avec une touche d'humour comme si tu étais un jardinier paysagiste sur base de ce lien : (" + url_post + "). " +
+            "Rédige une réponse en JSON, d’un article de blog détaillé précis et proffessionel avec une touche d'humour en etant le plus fidèle à ce texte : (" + url_post + "). " +
             "1. La created_at = " + getFormattedDate() + "" +
             "2. Un titre de +- 10 mots, " +
             "3. Description météo à Bruxelles de +- 35 mots, " +
             "4. Une phrase d'accroche de +- 40 mots, avec les 3 mots les plus importants entre les balises html <b></b> " +
             "5. **L'article doit impérativement comporter un minimum de 500 mots**, sans aucun retour à la ligne excepté entre les 5 parties. " +
             "   Utilise des balises <span> pour entourer chaqune des 5 parties, et insère une balise <br id='link_to_service'> entre le troisieme et la quatrieme  parties. " +
-            "   Chacune des 5 parties doit absolument contenir un titre d'accroche de paragraphe <h4></h4> et sous le titre une phrase de question dans un <ul><li> sur le context du chapitre " +
-            "et une phrase entièrre importante mise en évidence avec des balises html <b></b>. " +
-            "   **L'article ne doit pas être inférieur à 500 mots**, il doit respecter les exigences strictement et chaque contenu de chapitre doit etre tres detaiilé et precis sur le sujet, avec des information technique," +
+            "   Chacune des 5 parties doit absolument contenir un titre d'accroche de paragraphe <h4></h4> avec une icone illustratrice et sous le titre une phrase de question dans un <ul><li> sur le context du chapitre " +
+            "et une phrase entièrre dans le paragraphe importante mise en évidence avec des balises html <b></b>. " +
+            "   **L'article ne doit pas être inférieur à 700 mots**, il doit respecter les exigences strictement et chaque contenu de chapitre doit etre tres detaiilé et precis sur le sujet, avec des informations techniques," +
             "6. Une citation connue en lien avec l'article et le nom de l'auteur. " +
             "7. Le lien que je t'ai donné : " + url_post + " " +
             "8. image_url : " +( urlImage?.length?urlImage:null) +

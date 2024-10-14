@@ -13,6 +13,8 @@ import {MatFormFieldModule} from "@angular/material/form-field";
 import {
   DialogDeleteCommentConfirmComponent
 } from "../../shared/dialog/delete-comment-confirm/dialog-delete-comment-confirm.component";
+import {Post} from "../../shared/types/post"
+import {Comment} from "../../shared/types/comment";
 
 @Component({
   selector: 'app-post-all',
@@ -23,9 +25,9 @@ import {
   styleUrl: './post-all.component.css'
 })
 export class PostAllComponent implements OnInit, AfterViewChecked {
-  postsWithComments: any[] = [];
+  postsWithComments: Post[] = [];
   readonly dialogDeleteConfirm = inject(MatDialog);
-  matSelectedOption = "";
+  matSelectedOption: string = "";
 
   constructor(private supabaseService: SupabaseService, private router: Router, private cdRef: ChangeDetectorRef) {
   }
@@ -38,6 +40,23 @@ export class PostAllComponent implements OnInit, AfterViewChecked {
     this.addClickEventAccordionArticle('accordion')
     this.addClickEventAccordionArticle('accordionComments')
   }
+
+  // fetchUrl(){
+  //   fetch("https://jardin-iris.be") // Remplacez par l'URL de votre choix
+  //     .then(response => {
+  //       console.log('dans le the du fetch')
+  //       if (!response.ok) {
+  //         throw new Error('Network response was not ok');
+  //       }
+  //       return response.text(); // Récupère le contenu HTML
+  //     })
+  //     .then(html => {
+  //       console.log(html); // Affiche le HTML dans la console
+  //     })
+  //     .catch(error => {
+  //       console.error('There was a problem with the fetch operation:', error);
+  //     });
+  // }
 
   addClickEventAccordionArticle(classSelectorName: string) {
     // Récupérer tous les éléments ayant la classe "accordion"
@@ -73,10 +92,10 @@ export class PostAllComponent implements OnInit, AfterViewChecked {
   async refreshDataGetManyPosts() {
     try {
       // Récupérer les posts et les commentaires
-      const responsePost = await this.supabaseService.getOneOrManyPostForm(0, this.matSelectedOption);
-      const responseComments = await this.supabaseService.getAllComments();
+      const responsePost: Post[] = await this.supabaseService.getOneOrManyPostForm(0, this.matSelectedOption);
+      const responseComments: Comment[] = await this.supabaseService.getAllComments();
       // Attacher les commentaires à chaque post
-      const postsWithComments = responsePost.map(post => {
+      const postsWithComments: Post[] = responsePost.map((post: Post) => {
         return {
           ...post,
           comments: responseComments.filter(comment => comment.fk_post === post.id) // Associer les commentaires liés
@@ -92,7 +111,7 @@ export class PostAllComponent implements OnInit, AfterViewChecked {
   }
 
 
-  openDialogDeletePost(post: any) {
+  openDialogDeletePost(post: Post) {
     const dialogRef = this.dialogDeleteConfirm.open(DialogDeletePostConfirmComponent, {
       data: {
         post: post,
@@ -106,7 +125,7 @@ export class PostAllComponent implements OnInit, AfterViewChecked {
     });
   }
 
-  deletePost(post: any) {
+  deletePost(post: Post) {
     this.openDialogDeletePost(post)
   }
 
@@ -136,7 +155,7 @@ export class PostAllComponent implements OnInit, AfterViewChecked {
     this.refreshDataGetManyPosts();
   }
 
-  openDialogDeleteComment(comment: any) {
+  openDialogDeleteComment(comment: Comment) {
     const dialogRef = this.dialogDeleteConfirm.open(DialogDeleteCommentConfirmComponent, {
       data: {
         comment: comment,
@@ -149,18 +168,18 @@ export class PostAllComponent implements OnInit, AfterViewChecked {
     });
   }
 
-  deleteCommentById(comment: any) {
+  deleteCommentById(comment: Comment) {
     this.openDialogDeleteComment(comment)
   }
 
-  valideCommentById(comment: any) {
+  valideCommentById(comment: Comment) {
     this.supabaseService.valideCommentById(comment.id).then(r => {
       this.refreshDataGetManyPosts();
     })
   }
 
-  getValidCommentsCount(post: any): number {
-    return post.comments ? post.comments.filter((comment: any) => comment.valide).length : 0;
+  getValidCommentsCount(post: Post): number {
+    return post.comments ? post.comments.filter((comment: Comment) => comment.valide).length : 0;
   }
 
 

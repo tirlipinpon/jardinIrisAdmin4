@@ -8,6 +8,7 @@ import {
   MatDialogTitle
 } from "@angular/material/dialog";
 import {NgIf} from "@angular/common";
+import {Router} from "@angular/router";
 
 @Component({
   selector: 'app-dialog',
@@ -18,8 +19,9 @@ import {NgIf} from "@angular/common";
 })
 export class DialogComponent {
   data = inject(MAT_DIALOG_DATA);
-  redirectTo(url: string) {
-    window.open(url, "_blank");
 
+  constructor(private router: Router) {}
+  redirectTo(url: string) {
+    this.router.navigate(['/get-all-pos']);
   }
 }
