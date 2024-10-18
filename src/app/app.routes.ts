@@ -11,6 +11,8 @@ export const routes: Routes = [
     loadComponent: () => import('./posts/post-by-openai/post-generate-by-ia.component').then(m => m.PostGenerateByIaComponent), title: 'générer un post'},
   { path: 'asking-post',
     loadComponent: () => import('./posts/post-by-perplexity/post-by-perplexity.component').then(m => m.PostByPerplexityComponent), title: 'chercher un post'},
+  { path: 'general-post',
+    loadComponent: () => import('./posts/post-general/post-general.component').then(m => m.PostGeneralComponent), title: 'post automatique'},
   { path: '**',
     loadComponent: () => import('./posts/post-all/post-all.component').then(m => m.PostAllComponent)
   }

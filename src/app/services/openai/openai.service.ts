@@ -1,13 +1,14 @@
 import { Injectable } from '@angular/core';
 import OpenAI from "openai";
-import {getFormattedDate} from "../../utils/getUTCFormattedDate";
+import {getFormattedFullDateTime} from "../../utils/getFormattedDate";
+import {environment} from "../../../../environment";
 @Injectable({
   providedIn: 'root'
 })
 export class OpenaiService {
   openai = new OpenAI({
     dangerouslyAllowBrowser: true,
-    apiKey: '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'
+    apiKey: environment.openAiApiKey
   });
   constructor() { }
 
@@ -40,7 +41,7 @@ export class OpenaiService {
           "content":
             "Voici les données :" + weatherData + " La structure du blog doit avoir ces parties distinctes: " +
             "Rédige une réponse en JSON, d’un article de blog détaillé précis et proffessionel avec une touche d'humour en etant le plus fidèle à ce texte : (" + url_post + "). " +
-            "1. La created_at = " + getFormattedDate() + "" +
+            "1. La created_at = " + getFormattedFullDateTime() + "" +
             "2. Un titre de +- 10 mots, " +
             "3. Description météo à Bruxelles de +- 35 mots, " +
             "4. Une phrase d'accroche de +- 40 mots, avec les 3 mots les plus importants entre les balises html <b></b> " +
@@ -64,51 +65,16 @@ export class OpenaiService {
     return completion.choices[0].message.content
   }
 
-  async callMainOpenAiSelectArticleFromNewsApi(newsApiData: any[]) {
+  async fetchData(prompt: any) {
     const completion = await this.openai.chat.completions.create({
       messages: [
-        {
-          "role": "system",
-          "content":
-            "Tu es un assistant expert en évaluation d'articles pour un blog de jardinier paysagiste en Belgique. "+
-            "Ta tâche est d'analyser une liste d'articles pour déterminer s'il y a un article pertinent pour un blog spécialisé dans les thèmes du jardinage, "+
-            "ou de la nature, ou de l'écologie, ou des plantes, ou du potager, ou aux arbres, ou aux fleurs. Le blog est destiné à un public en Belgique."+
-            "\n\nCritères de pertinence :\n"+
-            "- Le contenu doit être lié au jardinage, à l'écologie, aux plantes, ou au potager.\n"+
-            "- L'article doit être adapté au contexte belge.\n"+
-            "- Le ton et le style doivent être informatifs ou pédagogiques, adaptés à des amateurs ou professionnels."+
-            "\n\nSi tu trouves un article, retourne **un seul objet JSON** avec les champs suivants :\n"+
-            "Ta réponse doit être en JSON valide strict " +
-            "et où chaque clé/valeur du JSON est sur une ligne (commence par la parenthèse ouvrante et fini par la parenthèse fermante et rien d'autre, " +
-            "“Do not wrap the JSON codes in JSON markers or added texte by yourself comments”): just that !->" +
-            "{\n"+
-            "  \"valide\": true,\n"+
-            "  \"explication\": {\n"+
-            "    \"raison-article-1\": \"Pourquoi cet article est pertinent ou non pertinent pour un blog de jardinier en Belgique.\",\n"+
-            "    \"raison-article-2\": \"Pourquoi cet article est pertinent ou non pertinent, etc.\"\n"+
-            "  },\n"+
-            "  \"url\": \"URL de l'article validé\",\n"+
-            "  \"image_url\": \"URL de l'image de l'article validé\"\n"+
-            "}\n"+
-            "\nL'explication doit inclure une raison pour chaque article analysé, qu'il soit retenu ou non. Le champ 'explication' doit donc contenir des clés de justification pour **chaque article**. "+
-            "Par exemple :\n"+
-            "\"raison-article-1\": \"Non pertinent car il parle de... .\",\n"+
-            "\"raison-article-2\": \"Pertinent car il parle de... .\"\n"+
-            "\nSi aucun article n'est pertinent, retourne un tableau vide []."
-        },
-        {
-          "role": "user",
-          "content":
-            "Voici la liste des articles à évaluer : " + JSON.stringify(newsApiData) + ". " +
-            "Tu dois retourner un objet JSON avec un seul article valide s'il y en a un, avec un tableau 'explication' contenant la raison de pertinence ou non pertinence pour chaque article analysé. "+
-            "Si aucun article n'est pertinent, retourne un tableau vide []."
-        }
+        prompt.systemRole,
+        prompt.userRole
       ],
       model: "gpt-4"
     });
 
-    console.log('newsApiData= '+ JSON.stringify(newsApiData));
-    console.log('completion.choices[0]= '+ JSON.stringify(completion.choices[0]));
+    // console.log('completion.choices[0]= '+ JSON.stringify(completion.choices[0]));
     return completion.choices[0].message.content
   }
 

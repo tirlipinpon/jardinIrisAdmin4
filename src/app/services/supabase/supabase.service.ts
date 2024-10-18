@@ -179,11 +179,12 @@ export class SupabaseService {
       console.log(' Erreur lors de la récupération des posts: ' + (error))
       return error
     } else {
+      console.log("getFirstIdeaPostByMonth = " + JSON.stringify(data, null, 2))
       return data;
     }
   }
 
-  async updateDeleteIdeaPostById(id: number, fk_idPost: number) {
+  async updateDeletedIdeaPostById(id: number, fk_idPost: number) {
     try {
       const { data, error } = await this.supabase
         .from('ideaPost')

@@ -5,6 +5,7 @@ import {OpenaiService} from "../../services/openai/openai.service";
 import {WeaterMeteoService} from "../../services/open-meteo/weater-meteo.service";
 import {SupabaseService} from "../../services/supabase/supabase.service";
 import {StepperCreateByIaComponent} from "../../shared/stepper-create-by-ia/stepper-create-by-ia.component";
+import {GetPromptService} from "../../services/construct-prompt/get-prompt.service";
 
 
 @Component({
@@ -21,23 +22,19 @@ export class PostGenerateByIaComponent {
   constructor(private theNewsApiService: TheNewsApiService,
               private openaiService: OpenaiService,
               private weaterMeteoService: WeaterMeteoService,
-              private supabaseService: SupabaseService) {
+              private supabaseService: SupabaseService,
+              private getPromptService: GetPromptService) {
   }
 
   clickToGenerate() {
     this.theNewsApiService.getNewsApi().subscribe((news) => {
-      let newsData = news.data.map((article: any) => {
-        return {
-          url: article.url,
-          image_url: article.image_url
-        };
-      });
+      let newsData = this.theNewsApiService.mapperNewsApi(news)
       // TODO: step 1
       this.stepValue = 1;
       console.log("getNewsApi OK = " + JSON.stringify(newsData))
       this.messageToStepper = "Récupération des articles réussies = "+ JSON.stringify(newsData)
       // Appel à OpenAI pour la sélection des articles
-      this.openaiService.callMainOpenAiSelectArticleFromNewsApi(newsData).then(response => {
+      this.openaiService.fetchData(this.getPromptService.getPromptSelectArticle(newsData)).then(response => {
         try {
           const responseData = typeof response === 'string' ? JSON.parse(response) : response;
           if (responseData && typeof responseData === 'object' && 'valide' in responseData) {

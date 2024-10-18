@@ -8,7 +8,7 @@ import {
   MatDialogTitle
 } from "@angular/material/dialog";
 import {DatePipe, NgIf} from "@angular/common";
-import {getFormattedDate} from "../../../utils/getUTCFormattedDate";
+import {getFormattedFullDateTime} from "../../../utils/getFormattedDate";
 import {Post} from "../../types/post";
 
 @Component({
@@ -20,5 +20,5 @@ import {Post} from "../../types/post";
 })
 export class DialogDeletePostConfirmComponent {
   data: any = inject(MAT_DIALOG_DATA);
-  protected readonly getFormattedDate = getFormattedDate;
+  protected readonly getFormattedDate = getFormattedFullDateTime;
 }
