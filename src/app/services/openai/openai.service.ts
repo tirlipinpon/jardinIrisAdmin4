@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import OpenAI from "openai";
 import {getFormattedFullDateTime} from "../../utils/getFormattedDate";
 import {environment} from "../../../../environment";
+import {consoleLog} from "../../utils/consoleLog";
 @Injectable({
   providedIn: 'root'
 })
@@ -71,11 +72,24 @@ export class OpenaiService {
         prompt.systemRole,
         prompt.userRole
       ],
-      model: "gpt-4"
+      model: "gpt-4o-mini"
     });
 
     // console.log('completion.choices[0]= '+ JSON.stringify(completion.choices[0]));
     return completion.choices[0].message.content
+  }
+
+  async imageGenerartor(promptText: any) {
+    const image =
+      await this.openai.images.generate({
+        model: "dall-e-3",
+        prompt: promptText,
+        n:1,
+        size:"1024x1024",
+        response_format: "b64_json"
+      });
+    return image.data[0].b64_json
+
   }
 
 }

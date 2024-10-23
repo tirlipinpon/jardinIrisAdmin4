@@ -1,9 +1,9 @@
 import {inject, Injectable} from '@angular/core';
 import {HttpClient} from "@angular/common/http";
 import {Observable} from "rxjs";
-import {CathegorieJardinage} from "../../shared/types/cathegorie"
 import {environment} from "../../../../environment";
 import {formatCurrentDateUs} from "../../utils/getFormattedDate";
+import {afficherCategories} from "../../utils/afficherCategories";
 
 
 @Injectable({
@@ -14,11 +14,8 @@ export class TheNewsApiService {
     &search_fields=title,description,main_text
     &categories=general,tech,travel,entertainment,business,food,politics
     &exclude_categories=sports
-    &published_on=2024-10-15
-    &search=belgique+(${CathegorieJardinage.ARBRE} | ${CathegorieJardinage.ECOLOGIE} |
-    ${CathegorieJardinage.FLEUR} | ${CathegorieJardinage.JARDIN} |
-    ${CathegorieJardinage.PLANTE} | ${CathegorieJardinage.NATURE} |
-    ${CathegorieJardinage.POTAGER})
+    &published_on=${formatCurrentDateUs()}
+    &search=belgique+(${afficherCategories('|')})
     &language=fr,nl,en
     &page=1`;
 

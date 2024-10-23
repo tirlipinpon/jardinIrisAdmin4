@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {Component, ViewChild} from '@angular/core';
 import {TheNewsApiService} from "../../services/the-news-api/the-news-api.service";
 import {lastValueFrom} from "rxjs";
 import {PerplexityService} from "../../services/perplexity/perplexity.service";
@@ -9,17 +9,30 @@ import {mapToPost} from "../../utils/mapJsonToPost";
 import {SupabaseService} from "../../services/supabase/supabase.service";
 import {Post} from "../../shared/types/post";
 import {escapeHtmlForJson} from "../../utils/escapeHtmlForJson";
+import {consoleLog} from "../../utils/consoleLog";
+import {compressImage} from "../../utils/resizeB64JsonIMage";
+import {getRandomIntInclusive} from "../../utils/randomBetweenTwooNumberInclusive";
+import {inLineString} from "../../utils/inLineString";
+import {ChronometreComponent} from "../../shared/chronometre/chronometre/chronometre.component";
 
 @Component({
   selector: 'app-post-general',
   standalone: true,
-  imports: [],
+  imports: [
+    ChronometreComponent
+  ],
   templateUrl: './post-general.component.html',
   styleUrl: './post-general.component.css'
 })
 export class PostGeneralComponent {
-  cpt = 0
-  image_url: string = '';
+  image_url: any = '';
+  precisionArticle: any = ''
+  textPromptImage= "créé moi une image avec peu d'éléments ', concentre toi sur le sujet que je vais te donner, car cette image vas allez comme illustration d'un blog, et ne met surtout aucun de texte sur l'image , voici le sujet : "
+  testResponse = ''
+  dataTitleSubjectArticle: string = ''
+  formatedDataArticleForPost: string = ''
+  dataToResume: any = null;
+  @ViewChild(ChronometreComponent) chronometreComponent!: ChronometreComponent;
 
   constructor(private theNewsApiService: TheNewsApiService,
               private perplexityService: PerplexityService,
@@ -28,52 +41,109 @@ export class PostGeneralComponent {
               private supabaseService: SupabaseService) {
   }
 
-  process() {
-    this.executeProcess()
+  async process() {
+    this.chronometreComponent.startChronometre()
+    this.searchArticleValide()
+    // const base64LengthResize = (respResize.length * (3/4)) - (respResize.includes('==') ? 2 : respResize.includes('=') ? 1 : 0);
+    // console.log(`La taille de l'image Base64 est de ${base64LengthResize / 1024} Ko`);
   }
 
-  consoleLog(message: string, obj: any) {
-    console.log(this.cpt++ + " " + message + " = " + JSON.stringify(obj, null, 2))
+  async searchArticleValide() {
+    const dataMappedFromTheNewsApi = this.theNewsApiService.mapperNewsApi(await lastValueFrom(this.theNewsApiService.getNewsApi()))
+    const dataFromOpenAiSelectionArticle: any = await this.perplexityService.fetchData(this.getPromptService.getPromptSelectArticle(dataMappedFromTheNewsApi))
+    const resultMappedArticles = JSON.parse(extractJSONBlock(dataFromOpenAiSelectionArticle.choices[0].message.content))
+    resultMappedArticles.valide ? await this.processArticle(resultMappedArticles) : this.getIdeaPost()
   }
 
-  async executeProcess() {
-    const dataFromTheNewsApi = await lastValueFrom(this.theNewsApiService.getNewsApi())
-    const dataMappedFromTheNewsApi = this.theNewsApiService.mapperNewsApi(dataFromTheNewsApi)
-    // TODO: remplacer openai par perplexity pour la selection de l'article
-    const dataFromOpenAiSelectionArticle = await this.openaiService.fetchData(this.getPromptService.getPromptSelectArticle(dataMappedFromTheNewsApi))
-    this.checkIfArticleFound(dataFromOpenAiSelectionArticle);
+  getIdeaPost(){
+    this.supabaseService.getFirstIdeaPostByMonth(new Date().getMonth()+1, new Date().getFullYear())
+      .then((r: any) => {
+        this.precisionArticle = r[0]
+        this.processArticle(r[0].description)
+      });
   }
 
-  resumeArticle(dataToResume: any) {
-    this.image_url = dataToResume.image_url
-    this.perplexityService.fetchData(this.getPromptService.getPromptResumeArticle('https://www.pleinevie.fr/vie-quotidienne/jardin/jardin-cet-endroit-est-ideal-pour-installer-un-nichoir-pour-les-oiseaux-et-les-proteger-tout-lhiver-135399.html')).then(async (resultFetch: any) => {
-      console.log(resultFetch.choices[0].message.content)
-      // TODO: demander a open ai de structurer l'article en html
-      const articleFormatedInHtml = await this.perplexityService.fetchData(this.getPromptService.getPromptSystemUserArticleInHtmlGeneric(resultFetch.choices[0].message.content))
-      this.openaiService.fetchData(this.getPromptService.getPromptFillArticlePostData(escapeHtmlForJson(extractHTMLBlock(articleFormatedInHtml.choices[0].message.content)), this.image_url)).then((resultFetch2: any) => {
+  async processArticle(dataToResume: any) {
+    this.dataToResume = dataToResume
+    this.image_url = dataToResume.image_url ? dataToResume.image_url : "https://picsum.photos/400/300"
+    this.dataTitleSubjectArticle  = dataToResume.url ? dataToResume.url : dataToResume
+    this.perplexityService.fetchData(this.getPromptService.getPromptResumeArticle(dataToResume.url ? dataToResume.url : dataToResume)).then(async (resumedArticleFetch: any) => {
+      const articleFormatedInHtml = await this.perplexityService.fetchData(this.getPromptService.getPromptGenericArticleInHtml(resumedArticleFetch.choices[0].message.content))
+      this.formatedDataArticleForPost = this.formatDataForPost(articleFormatedInHtml.choices[0].message.content)
+      this.processDataInJson()
+    })
+  }
 
-        const test1 = extractJSONBlock(resultFetch2)
-        this.consoleLog('extractJSONBlock', test1)
+  formatDataForPost(dataToFormat: any) {
+    const extractedHTMLBlock = extractHTMLBlock(dataToFormat)
+    const escapedHtmlForJson = escapeHtmlForJson(extractedHTMLBlock)
+    const inLinedString = inLineString(escapedHtmlForJson)
+    return inLinedString;
+  }
 
-        const test2 = JSON.parse(test1)
-        this.consoleLog("json parse ", test2)
-
-        const test3 = mapToPost(test2)
-        this.consoleLog("mapToPost", test3)
-
-        this.supabaseService.setNewPostForm(test3).then((lastPost: Post) => {
-          this.consoleLog("last Post", lastPost)
-        })
+  processDataInJson() {
+    let parsedInJson: any = null
+    this.perplexityService.fetchData(this.getPromptService.getPromptGenericFillArticlePostData(this.image_url, this.dataTitleSubjectArticle)).then((resultArticleInPostData: any) => {
+      try {
+        parsedInJson = JSON.parse(extractJSONBlock(resultArticleInPostData.choices[0].message.content));
+      } catch (error) {
+        console.error('Erreur lors du parsing JSON ou traitement :', error);
+        setTimeout(() => { this.processArticle(this.dataToResume); }, 1000);
+      }
+      parsedInJson.article = this.formatedDataArticleForPost
+      // TODO: if article viens de theNewsApi donc if (!this.precisionArticle.id) alors generer extra image pour illustration
+      this.supabaseService.setNewPostForm(mapToPost(parsedInJson)).then(async (lastPost: Post[]) => {
+        await this.updateImageUrlResizedAndIdeaPost(lastPost[0].id)
+        this.chronometreComponent.stopChronometre()
       })
     })
   }
 
-  checkIfArticleFound(selectedArticle: any): void {
-    if (selectedArticle?.length) {
-      const dataString: any = JSON.parse(selectedArticle)
-      if (dataString.valide) {
-        this.resumeArticle(dataString)
-      }
-    } else {}
+  async updateImageUrlResizedAndIdeaPost(lastIdPost: number) {
+    if (this.precisionArticle.id) {
+      this.image_url = await this.openaiService.imageGenerartor(this.textPromptImage + this.precisionArticle.description + ' dans ce style ci : ' + this.getStyleForToday(getRandomIntInclusive(1, 31)))
+      this.image_url = await compressImage(this.image_url, 500, 300)
+      await this.supabaseService.updateImageUrlPostByIdForm(lastIdPost, this.image_url)
+      await this.supabaseService.updateIdeaPostById(this.precisionArticle.id, lastIdPost)
+    }
   }
+
+  getStyleForToday(randomNumber?: number): string {
+    const styles = [
+      "minimalist, flat color blocks, clear lines",
+      "cartoonish, playful with soft edges",
+      "geometric shapes with pastel tones",
+      "line art with subtle watercolor touches",
+      "bold outlines with a single accent color",
+      "abstract with smooth gradients and curves",
+      "vintage poster style with muted colors",
+      "low-poly with simple facets",
+      "monochrome, using light and shadow for contrast",
+      "pop-art inspired, vibrant colors and patterns",
+      "collage-inspired, mixed textures and cut-outs",
+      "sketch style with rough pencil textures",
+      "pixel art, blocky and retro",
+      "neon outlines with a dark background",
+      "paper cut-out effect with layered shapes",
+      "silhouette style with a single color palette",
+      "sci-fi digital interface look with glowing elements",
+      "chalkboard drawing with hand-drawn chalk textures",
+      "glossy 3D look with simple shapes and reflections",
+      "modern vector art with clean, flowing lines",
+      "isometric perspective with clean, 3D shapes",
+      "childlike doodles with crayon texture",
+      "graffiti-inspired with bold strokes and spray paint effect",
+      "stencil-style with cutout shapes and solid colors",
+      "claymation-inspired, soft textures and rounded edges",
+      "retro pixel art with bright, contrasting colors",
+      "gradient overlays with soft, blurry edges",
+      "hand-painted brush strokes with rich texture",
+      "comic book style with halftone shading and bold lines",
+      "shadow play with strong contrasts and minimal shapes",
+      "origami-inspired with folded paper textures"
+    ];
+    const currentDay = (randomNumber!==undefined  && randomNumber>0) ? randomNumber : new Date().getDate();
+    return styles[(currentDay - 1) % styles.length]; // Use modulus to wrap around if days exceed styles count
+  }
+
 }

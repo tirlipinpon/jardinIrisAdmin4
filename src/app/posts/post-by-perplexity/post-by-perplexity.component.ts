@@ -44,9 +44,9 @@ export class PostByPerplexityComponent {
   callPerplexityService() {
     this.supabaseService.getFirstIdeaPostByMonth(new Date().getMonth()+1, new Date().getFullYear()).then((r: any) => {
       r[0].description.length?this.precisionArticle = r[0]: this.precisionArticle = null;
-      this.perplexityService.fetchData(this.getPromptService.getPerplexityPromptFindArticle(this.precisionArticle, this.morePromptInfo, this.returnPickerDate(),this.dateSelected)).then((resultFetch: any) => {
+      this.perplexityService.fetchData(this.getPromptService.getPerplexityPromptGenericFindArticle(this.precisionArticle, this.morePromptInfo, this.returnPickerDate(),this.dateSelected)).then((resultFetch: any) => {
         this.supabaseService.setNewPostForm(mapToPost(JSON.parse(extractJSONBlock(resultFetch.choices[0].message.content)))).then((r: any) => {
-          this.supabaseService.updateDeletedIdeaPostById(this.precisionArticle.id, r[0].id)
+          this.supabaseService.updateIdeaPostById(this.precisionArticle.id, r[0].id)
         })
       }).catch(err => console.error('Error fetching data:', err));
     });

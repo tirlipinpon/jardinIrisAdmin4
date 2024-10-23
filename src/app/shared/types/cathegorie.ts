@@ -1,9 +1,11 @@
-export enum CathegorieJardinage {
+export enum CathegoriesBlog {
   ARBRE = "arbre",
   ECOLOGIE = "écologie",
   FLEUR = "fleur",
   JARDIN = "jardin",
   NATURE = "nature",
   PLANTE = "plante",
-  POTAGER = "potager"
+  POTAGER = "potager",
+  FAUNE = "faune"
 }
+

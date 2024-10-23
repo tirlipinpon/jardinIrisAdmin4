@@ -184,7 +184,7 @@ export class SupabaseService {
     }
   }
 
-  async updateDeletedIdeaPostById(id: number, fk_idPost: number) {
+  async updateIdeaPostById(id: number, fk_idPost: number) {
     try {
       const { data, error } = await this.supabase
         .from('ideaPost')
@@ -196,6 +196,24 @@ export class SupabaseService {
       if (error) {
         throw error;
       }
+    } catch (error) {
+      throw error;
+    }
+  }
+
+
+  async updateImageUrlPostByIdForm(idPost: number, json64: string) {
+    try {
+      const { data, error } = await this.supabase
+        .from('post')
+        .update({ image_url: json64 })
+        .eq('id', idPost)
+        .select()
+
+      if (error) {
+        throw error;
+      }
+      return data;
     } catch (error) {
       throw error;
     }
