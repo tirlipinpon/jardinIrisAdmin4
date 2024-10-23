@@ -116,7 +116,7 @@ export class SupabaseService {
     }
   }
 
-  async updatePostByIdForm(dataPost: Post) {
+  async updatePostByPostForm(dataPost: Post) {
     try {
       const { data, error } = await this.supabase
         .from('post')

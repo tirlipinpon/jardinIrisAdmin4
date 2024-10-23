@@ -1,4 +1,4 @@
-import {Component, ViewChild} from '@angular/core';
+import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {TheNewsApiService} from "../../services/the-news-api/the-news-api.service";
 import {lastValueFrom} from "rxjs";
 import {PerplexityService} from "../../services/perplexity/perplexity.service";
@@ -9,41 +9,89 @@ import {mapToPost} from "../../utils/mapJsonToPost";
 import {SupabaseService} from "../../services/supabase/supabase.service";
 import {Post} from "../../shared/types/post";
 import {escapeHtmlForJson} from "../../utils/escapeHtmlForJson";
-import {consoleLog} from "../../utils/consoleLog";
 import {compressImage} from "../../utils/resizeB64JsonIMage";
 import {getRandomIntInclusive} from "../../utils/randomBetweenTwooNumberInclusive";
 import {inLineString} from "../../utils/inLineString";
 import {ChronometreComponent} from "../../shared/chronometre/chronometre/chronometre.component";
+import {DatePipe, NgIf} from "@angular/common";
+import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
+import {formatCurrentDateUs} from "../../utils/getFormattedDate";
+import {Editor, NgxEditorModule, Toolbar} from "ngx-editor";
 
 @Component({
   selector: 'app-post-general',
   standalone: true,
   imports: [
-    ChronometreComponent
+    ChronometreComponent,
+    NgIf,
+    ReactiveFormsModule,
+    FormsModule,
+    DatePipe,
+    NgxEditorModule
   ],
   templateUrl: './post-general.component.html',
   styleUrl: './post-general.component.css'
 })
-export class PostGeneralComponent {
+export class PostGeneralComponent implements OnInit, OnDestroy {
+  // @ts-ignore
+  postForm: FormGroup;
   image_url: any = '';
   precisionArticle: any = ''
   textPromptImage= "créé moi une image avec peu d'éléments ', concentre toi sur le sujet que je vais te donner, car cette image vas allez comme illustration d'un blog, et ne met surtout aucun de texte sur l'image , voici le sujet : "
-  testResponse = ''
   dataTitleSubjectArticle: string = ''
   formatedDataArticleForPost: string = ''
   dataToResume: any = null;
+  url_post = "";
+  isLoading = false;
+  isEditorTextON : boolean = true
+  // @ts-ignore
+  editor: Editor;
+  toolbar: Toolbar = [
+    // default value
+    ["bold", "italic"],
+    ["underline", "strike"],
+    ["code", "blockquote"],
+    ["ordered_list", "bullet_list"],
+    [{ heading: ["h1", "h2", "h3", "h4", "h5", "h6"] }],
+    ["link", "image"],
+    ["text_color", "background_color"],
+    ["align_left", "align_center", "align_right", "align_justify"],
+  ];
+  protected readonly formatCurrentDateUs = formatCurrentDateUs;
   @ViewChild(ChronometreComponent) chronometreComponent!: ChronometreComponent;
 
   constructor(private theNewsApiService: TheNewsApiService,
               private perplexityService: PerplexityService,
               private openaiService: OpenaiService,
               private getPromptService: GetPromptService,
-              private supabaseService: SupabaseService) {
+              private supabaseService: SupabaseService,
+              private fb: FormBuilder) {
+  }
+
+  ngOnInit() {
+    this.editor = new Editor();
+    this.postForm = this.fb.group({
+      id: ['', Validators.required],
+      created_at: ['', Validators.required],
+      titre: ['', Validators.required],
+      description_meteo: ['', Validators.required],
+      phrase_accroche: ['', Validators.required],
+      article: ['', Validators.required],
+      citation: ['', Validators.required],
+      lien_url_article: ['', Validators.required],
+      categorie: ['', Validators.required],
+      image_url: ['', Validators.required]
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.editor.destroy();
   }
 
   async process() {
     this.chronometreComponent.startChronometre()
-    this.searchArticleValide()
+    this.isLoading = true;
+    this.url_post.length ? await this.processArticle(this.url_post) :  await this.searchArticleValide()
     // const base64LengthResize = (respResize.length * (3/4)) - (respResize.includes('==') ? 2 : respResize.includes('=') ? 1 : 0);
     // console.log(`La taille de l'image Base64 est de ${base64LengthResize / 1024} Ko`);
   }
@@ -91,20 +139,25 @@ export class PostGeneralComponent {
         setTimeout(() => { this.processArticle(this.dataToResume); }, 1000);
       }
       parsedInJson.article = this.formatedDataArticleForPost
-      // TODO: if article viens de theNewsApi donc if (!this.precisionArticle.id) alors generer extra image pour illustration
+      // TODO: if article viens de theNewsApi donc if (!this.precisionArticle.id) alors generer extra image pour illustration mais attention si url_post est la
       this.supabaseService.setNewPostForm(mapToPost(parsedInJson)).then(async (lastPost: Post[]) => {
-        await this.updateImageUrlResizedAndIdeaPost(lastPost[0].id)
-        this.chronometreComponent.stopChronometre()
+        await this.updateImageUrlResizedAndIdeaPost(lastPost[0].id);
+        (!this.precisionArticle.id && !this.url_post.length) ? this.postForm.patchValue(lastPost[0]) : null;
+        this.chronometreComponent.stopChronometre();
+        this.url_post = ''
+        this.isLoading = false;
       })
     })
   }
 
   async updateImageUrlResizedAndIdeaPost(lastIdPost: number) {
-    if (this.precisionArticle.id) {
+    if (this.precisionArticle.id || this.url_post.length) {
       this.image_url = await this.openaiService.imageGenerartor(this.textPromptImage + this.precisionArticle.description + ' dans ce style ci : ' + this.getStyleForToday(getRandomIntInclusive(1, 31)))
       this.image_url = await compressImage(this.image_url, 500, 300)
-      await this.supabaseService.updateImageUrlPostByIdForm(lastIdPost, this.image_url)
-      await this.supabaseService.updateIdeaPostById(this.precisionArticle.id, lastIdPost)
+      await this.supabaseService.updateImageUrlPostByIdForm(lastIdPost, this.image_url).then(async (lastPost: Post[]) => {
+        this.postForm.patchValue(lastPost[0]);
+      })
+      this.precisionArticle.id ? await this.supabaseService.updateIdeaPostById(this.precisionArticle.id, lastIdPost) : null
     }
   }
 
@@ -145,5 +198,21 @@ export class PostGeneralComponent {
     const currentDay = (randomNumber!==undefined  && randomNumber>0) ? randomNumber : new Date().getDate();
     return styles[(currentDay - 1) % styles.length]; // Use modulus to wrap around if days exceed styles count
   }
+
+  onSubmit() {
+    if (this.postForm.valid) {
+      this.isLoading = true;
+      this.supabaseService.updatePostByPostForm(this.postForm.value).then((response) => {
+        console.log(response)
+        this.isLoading = false;
+      });
+    }
+  }
+
+  switchIsCode(event: any) {
+    this.isEditorTextON = !this.isEditorTextON;
+    event.preventDefault();
+  }
+
 
 }

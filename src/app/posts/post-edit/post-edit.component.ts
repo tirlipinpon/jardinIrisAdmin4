@@ -74,7 +74,7 @@ export class PostEditComponent implements OnInit, OnDestroy {
   }
   onSubmit() {
     if (this.postForm.valid) {
-      this.supabaseService.updatePostByIdForm(this.postForm.value).then((response) => {
+      this.supabaseService.updatePostByPostForm(this.postForm.value).then((response) => {
         this.router.navigate(['/get-all-post']);
       })
     }
