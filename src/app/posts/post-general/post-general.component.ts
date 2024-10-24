@@ -1,22 +1,19 @@
-import {Component, OnDestroy, OnInit, ViewChild} from '@angular/core';
-import {TheNewsApiService} from "../../services/the-news-api/the-news-api.service";
+import {Component} from '@angular/core';
 import {lastValueFrom} from "rxjs";
+import {DatePipe, NgIf} from "@angular/common";
+import {TheNewsApiService} from "../../services/the-news-api/the-news-api.service";
 import {PerplexityService} from "../../services/perplexity/perplexity.service";
 import {OpenaiService} from "../../services/openai/openai.service";
 import {GetPromptService} from "../../services/construct-prompt/get-prompt.service";
+import {SupabaseService} from "../../services/supabase/supabase.service";
+import {ChronometreComponent} from "../../shared/chronometre/chronometre/chronometre.component";
+import {Post} from "../../shared/types/post";
 import {extractHTMLBlock, extractJSONBlock} from "../../utils/cleanJsonObject";
 import {mapToPost} from "../../utils/mapJsonToPost";
-import {SupabaseService} from "../../services/supabase/supabase.service";
-import {Post} from "../../shared/types/post";
 import {escapeHtmlForJson} from "../../utils/escapeHtmlForJson";
 import {compressImage} from "../../utils/resizeB64JsonIMage";
 import {getRandomIntInclusive} from "../../utils/randomBetweenTwooNumberInclusive";
 import {inLineString} from "../../utils/inLineString";
-import {ChronometreComponent} from "../../shared/chronometre/chronometre/chronometre.component";
-import {DatePipe, NgIf} from "@angular/common";
-import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} from "@angular/forms";
-import {formatCurrentDateUs} from "../../utils/getFormattedDate";
-import {Editor, NgxEditorModule, Toolbar} from "ngx-editor";
 
 @Component({
   selector: 'app-post-general',
@@ -24,140 +21,128 @@ import {Editor, NgxEditorModule, Toolbar} from "ngx-editor";
   imports: [
     ChronometreComponent,
     NgIf,
-    ReactiveFormsModule,
-    FormsModule,
-    DatePipe,
-    NgxEditorModule
+    DatePipe
   ],
   templateUrl: './post-general.component.html',
   styleUrl: './post-general.component.css'
 })
-export class PostGeneralComponent implements OnInit, OnDestroy {
-  // @ts-ignore
-  postForm: FormGroup;
+
+export class PostGeneralComponent {
   image_url: any = '';
-  precisionArticle: any = ''
-  textPromptImage= "créé moi une image avec peu d'éléments ', concentre toi sur le sujet que je vais te donner, car cette image vas allez comme illustration d'un blog, et ne met surtout aucun de texte sur l'image , voici le sujet : "
-  dataTitleSubjectArticle: string = ''
-  formatedDataArticleForPost: string = ''
+  precisionArticle: any = '';
+  textPromptImage = "créé moi une image avec peu d'éléments ', concentre toi sur le sujet que je vais te donner, car cette image vas allez comme illustration d'un blog, et ne met surtout aucun de texte sur l'image , voici le sujet : ";
+  dataTitleSubjectArticle: string = '';
+  formatedDataArticleForPost: string = '';
   dataToResume: any = null;
-  url_post = "";
-  isLoading = false;
-  isEditorTextON : boolean = true
-  // @ts-ignore
-  editor: Editor;
-  toolbar: Toolbar = [
-    // default value
-    ["bold", "italic"],
-    ["underline", "strike"],
-    ["code", "blockquote"],
-    ["ordered_list", "bullet_list"],
-    [{ heading: ["h1", "h2", "h3", "h4", "h5", "h6"] }],
-    ["link", "image"],
-    ["text_color", "background_color"],
-    ["align_left", "align_center", "align_right", "align_justify"],
-  ];
-  protected readonly formatCurrentDateUs = formatCurrentDateUs;
-  @ViewChild(ChronometreComponent) chronometreComponent!: ChronometreComponent;
 
   constructor(private theNewsApiService: TheNewsApiService,
               private perplexityService: PerplexityService,
               private openaiService: OpenaiService,
               private getPromptService: GetPromptService,
-              private supabaseService: SupabaseService,
-              private fb: FormBuilder) {
-  }
-
-  ngOnInit() {
-    this.editor = new Editor();
-    this.postForm = this.fb.group({
-      id: ['', Validators.required],
-      created_at: ['', Validators.required],
-      titre: ['', Validators.required],
-      description_meteo: ['', Validators.required],
-      phrase_accroche: ['', Validators.required],
-      article: ['', Validators.required],
-      citation: ['', Validators.required],
-      lien_url_article: ['', Validators.required],
-      categorie: ['', Validators.required],
-      image_url: ['', Validators.required]
-    });
-  }
-
-  ngOnDestroy(): void {
-    this.editor.destroy();
-  }
+              private supabaseService: SupabaseService) {}
 
   async process() {
-    this.chronometreComponent.startChronometre()
-    this.isLoading = true;
-    this.url_post.length ? await this.processArticle(this.url_post) :  await this.searchArticleValide()
-    // const base64LengthResize = (respResize.length * (3/4)) - (respResize.includes('==') ? 2 : respResize.includes('=') ? 1 : 0);
-    // console.log(`La taille de l'image Base64 est de ${base64LengthResize / 1024} Ko`);
+    try {
+      await this.searchArticleValide();
+    } catch (error) {
+      console.error("Erreur lors du traitement initial : ", error);
+    }
   }
 
   async searchArticleValide() {
-    const dataMappedFromTheNewsApi = this.theNewsApiService.mapperNewsApi(await lastValueFrom(this.theNewsApiService.getNewsApi()))
-    const dataFromOpenAiSelectionArticle: any = await this.perplexityService.fetchData(this.getPromptService.getPromptSelectArticle(dataMappedFromTheNewsApi))
-    const resultMappedArticles = JSON.parse(extractJSONBlock(dataFromOpenAiSelectionArticle.choices[0].message.content))
-    resultMappedArticles.valide ? await this.processArticle(resultMappedArticles) : this.getIdeaPost()
+    try {
+      const dataMappedFromTheNewsApi = this.theNewsApiService.mapperNewsApi(await lastValueFrom(this.theNewsApiService.getNewsApi()));
+      const dataFromOpenAiSelectionArticle: any = await this.perplexityService.fetchData(this.getPromptService.getPromptSelectArticle(dataMappedFromTheNewsApi));
+      const resultMappedArticles = JSON.parse(extractJSONBlock(dataFromOpenAiSelectionArticle.choices[0].message.content));
+      if (resultMappedArticles.valide) {
+        await this.processArticle(resultMappedArticles);
+      } else {
+        this.getIdeaPost();
+      }
+    } catch (error) {
+      console.error("Erreur lors de la recherche de l'article valide : ", error);
+    }
   }
 
-  getIdeaPost(){
-    this.supabaseService.getFirstIdeaPostByMonth(new Date().getMonth()+1, new Date().getFullYear())
+  getIdeaPost() {
+    this.supabaseService.getFirstIdeaPostByMonth(new Date().getMonth() + 1, new Date().getFullYear())
       .then((r: any) => {
-        this.precisionArticle = r[0]
-        this.processArticle(r[0].description)
+        try {
+          this.precisionArticle = r[0];
+          this.processArticle(r[0].description);
+        } catch (error) {
+          console.error("Erreur lors de la récupération de l'idée de post : ", error);
+        }
+      })
+      .catch((error) => {
+        console.error("Erreur lors de l'appel Supabase pour récupérer l'idée de post : ", error);
       });
   }
 
   async processArticle(dataToResume: any) {
-    this.dataToResume = dataToResume
-    this.image_url = dataToResume.image_url ? dataToResume.image_url : "https://picsum.photos/400/300"
-    this.dataTitleSubjectArticle  = dataToResume.url ? dataToResume.url : dataToResume
-    this.perplexityService.fetchData(this.getPromptService.getPromptResumeArticle(dataToResume.url ? dataToResume.url : dataToResume)).then(async (resumedArticleFetch: any) => {
-      const articleFormatedInHtml = await this.perplexityService.fetchData(this.getPromptService.getPromptGenericArticleInHtml(resumedArticleFetch.choices[0].message.content))
-      this.formatedDataArticleForPost = this.formatDataForPost(articleFormatedInHtml.choices[0].message.content)
-      this.processDataInJson()
-    })
+    try {
+      this.dataToResume = dataToResume;
+      this.image_url = dataToResume.image_url ? dataToResume.image_url : "https://picsum.photos/400/300";
+      this.dataTitleSubjectArticle = dataToResume.url ? dataToResume.url : dataToResume;
+      const resumedArticleFetch: any = await this.perplexityService.fetchData(this.getPromptService.getPromptResumeArticle(this.dataTitleSubjectArticle));
+      const articleFormatedInHtml = await this.perplexityService.fetchData(this.getPromptService.getPromptGenericArticleInHtml(resumedArticleFetch.choices[0].message.content));
+      this.formatedDataArticleForPost = this.formatDataForPost(articleFormatedInHtml.choices[0].message.content);
+      this.processDataInJson();
+    } catch (error) {
+      console.error("Erreur lors du traitement de l'article : ", error);
+    }
   }
 
   formatDataForPost(dataToFormat: any) {
-    const extractedHTMLBlock = extractHTMLBlock(dataToFormat)
-    const escapedHtmlForJson = escapeHtmlForJson(extractedHTMLBlock)
-    const inLinedString = inLineString(escapedHtmlForJson)
-    return inLinedString;
+    try {
+      const extractedHTMLBlock = extractHTMLBlock(dataToFormat);
+      const escapedHtmlForJson = escapeHtmlForJson(extractedHTMLBlock);
+      const inLinedString = inLineString(escapedHtmlForJson);
+      return inLinedString;
+    } catch (error) {
+      console.error("Erreur lors du formatage des données de l'article : ", error);
+      return '';
+    }
   }
 
   processDataInJson() {
-    let parsedInJson: any = null
-    this.perplexityService.fetchData(this.getPromptService.getPromptGenericFillArticlePostData(this.image_url, this.dataTitleSubjectArticle)).then((resultArticleInPostData: any) => {
-      try {
-        parsedInJson = JSON.parse(extractJSONBlock(resultArticleInPostData.choices[0].message.content));
-      } catch (error) {
-        console.error('Erreur lors du parsing JSON ou traitement :', error);
-        setTimeout(() => { this.processArticle(this.dataToResume); }, 1000);
-      }
-      parsedInJson.article = this.formatedDataArticleForPost
-      // TODO: if article viens de theNewsApi donc if (!this.precisionArticle.id) alors generer extra image pour illustration mais attention si url_post est la
-      this.supabaseService.setNewPostForm(mapToPost(parsedInJson)).then(async (lastPost: Post[]) => {
-        await this.updateImageUrlResizedAndIdeaPost(lastPost[0].id);
-        (!this.precisionArticle.id && !this.url_post.length) ? this.postForm.patchValue(lastPost[0]) : null;
-        this.chronometreComponent.stopChronometre();
-        this.url_post = ''
-        this.isLoading = false;
+    let parsedInJson: any = null;
+    this.perplexityService.fetchData(this.getPromptService.getPromptGenericFillArticlePostData(this.image_url, this.dataTitleSubjectArticle))
+      .then((resultArticleInPostData: any) => {
+        try {
+          parsedInJson = JSON.parse(extractJSONBlock(resultArticleInPostData.choices[0].message.content));
+          parsedInJson.article = this.formatedDataArticleForPost;
+          this.supabaseService.setNewPostForm(mapToPost(parsedInJson))
+            .then(async (lastPost: Post[]) => {
+              await this.updateImageUrlResizedAndIdeaPost(lastPost[0].id);
+            })
+            .catch((error) => {
+              console.error("Erreur lors de l'insertion du post dans Supabase : ", error);
+            });
+        } catch (error) {
+          console.error('Erreur lors du parsing JSON ou traitement :', error);
+          setTimeout(() => {
+            this.processArticle(this.dataToResume);
+          }, 1000);
+        }
       })
-    })
+      .catch((error) => {
+        console.error("Erreur lors de la récupération des données de l'article : ", error);
+      });
   }
 
   async updateImageUrlResizedAndIdeaPost(lastIdPost: number) {
-    if (this.precisionArticle.id || this.url_post.length) {
-      this.image_url = await this.openaiService.imageGenerartor(this.textPromptImage + this.precisionArticle.description + ' dans ce style ci : ' + this.getStyleForToday(getRandomIntInclusive(1, 31)))
-      this.image_url = await compressImage(this.image_url, 500, 300)
-      await this.supabaseService.updateImageUrlPostByIdForm(lastIdPost, this.image_url).then(async (lastPost: Post[]) => {
-        this.postForm.patchValue(lastPost[0]);
-      })
-      this.precisionArticle.id ? await this.supabaseService.updateIdeaPostById(this.precisionArticle.id, lastIdPost) : null
+    try {
+      if (this.precisionArticle.id) {
+        this.image_url = await this.openaiService.imageGenerartor(this.textPromptImage + this.precisionArticle.description + ' dans ce style ci : ' + this.getStyleForToday(getRandomIntInclusive(1, 31)));
+        this.image_url = await compressImage(this.image_url, 500, 300);
+        await this.supabaseService.updateImageUrlPostByIdForm(lastIdPost, this.image_url);
+        if (this.precisionArticle.id) {
+          await this.supabaseService.updateIdeaPostById(this.precisionArticle.id, lastIdPost);
+        }
+      }
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour de l'URL de l'image ou de l'idée de post : ", error);
     }
   }
 
@@ -195,24 +180,7 @@ export class PostGeneralComponent implements OnInit, OnDestroy {
       "shadow play with strong contrasts and minimal shapes",
       "origami-inspired with folded paper textures"
     ];
-    const currentDay = (randomNumber!==undefined  && randomNumber>0) ? randomNumber : new Date().getDate();
-    return styles[(currentDay - 1) % styles.length]; // Use modulus to wrap around if days exceed styles count
+    const currentDay = (randomNumber !== undefined && randomNumber > 0) ? randomNumber : new Date().getDate();
+    return styles[(currentDay - 1) % styles.length];
   }
-
-  onSubmit() {
-    if (this.postForm.valid) {
-      this.isLoading = true;
-      this.supabaseService.updatePostByPostForm(this.postForm.value).then((response) => {
-        console.log(response)
-        this.isLoading = false;
-      });
-    }
-  }
-
-  switchIsCode(event: any) {
-    this.isEditorTextON = !this.isEditorTextON;
-    event.preventDefault();
-  }
-
-
 }
