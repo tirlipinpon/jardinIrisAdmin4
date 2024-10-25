@@ -41,7 +41,7 @@ export class SupabaseService {
 
       if (orderBySelected) {
         if(orderBySelected==='valid') {
-          query = query.order(orderBySelected, { ascending: true });
+          query = query.eq('deleted', false).order(orderBySelected, { ascending: true });
         } else if(orderBySelected==='original') {
           query = query
             .eq('valid', true)

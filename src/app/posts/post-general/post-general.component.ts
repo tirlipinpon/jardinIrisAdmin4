@@ -1,14 +1,9 @@
 import {Component, inject} from '@angular/core';
 import {lastValueFrom, Observable} from "rxjs";
 import {HttpClient} from "@angular/common/http";
-
-
 import {environment} from "../../../../environment";
 import {createClient, SupabaseClient} from "@supabase/supabase-js";
 import OpenAI from "openai";
-
-
-
 
 @Component({
   selector: 'app-post-general',
@@ -19,14 +14,13 @@ import OpenAI from "openai";
   styleUrl: './post-general.component.css'
 })
 
-
-
 export class PostGeneralComponent {
   openai = new OpenAI({
     dangerouslyAllowBrowser: true,
     apiKey: environment.openAiApiKey
   });
   private supabase: SupabaseClient
+
   image_url: any = '';
   precisionArticle: any = '';
   textPromptImage = "créé moi une image avec peu d'éléments ', concentre toi sur le sujet que je vais te donner, car cette image vas allez comme illustration d'un blog, et ne met surtout aucun de texte sur l'image , voici le sujet : ";
@@ -41,8 +35,6 @@ export class PostGeneralComponent {
     &search=belgique+(${this.afficherCategories('|')})
     &language=fr,nl,en
     &page=1`;
-
-
 
   http = inject(HttpClient);
 
