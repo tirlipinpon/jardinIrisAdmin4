@@ -1,8 +1,4 @@
-<div *ngIf="isLoading" class="loader">
-  <!-- Vous pouvez utiliser une animation CSS ou une image pour le loader -->
-  <p>Chargement...</p>
-</div>
-
+<div *ngIf="isLoading" class="loader"></div>
 
 <section>
   <div>
@@ -23,10 +19,12 @@
 
 <app-chronometre></app-chronometre>
 <section *ngIf="postForm.valid" class="sidebar-page-container p_relative blog-classic pt_140">
+
   <div class="auto-container">
     <div class="row clearfix">
       <div class="col-lg-8 col-md-12 col-sm-12 content-side">
         <div id="containerPost" class="blog-classic-content p_relative d_block mr_20">
+          <button  style="background-color:lightBlue;padding: 10px;" (click)="validPostById(postForm.get('id')?.value)">valider le post</button>
           <form [formGroup]="postForm" (ngSubmit)="onSubmit()">
             <div class="blog-details-content p_relative d_block mr_20">
               <div class="blog-post">
@@ -120,7 +118,7 @@
                         </h4>
                       </blockquote>
 
-                      <button  type="submit" class="btn btn-primary">Soumettre</button>
+                      <button *ngIf="postForm.valid&&postForm.dirty" type="submit" class="btn btn-primary">Soumettre les modifications </button>
                     </div>
                   </div>
                 </div>

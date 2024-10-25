@@ -71,7 +71,7 @@ export class PostGeneralComponent implements OnInit, OnDestroy {
   ngOnInit() {
     this.editor = new Editor();
     this.postForm = this.fb.group({
-      id: ['', Validators.required],
+      id: [''],
       created_at: ['', Validators.required],
       titre: ['', Validators.required],
       description_meteo: ['', Validators.required],
@@ -214,5 +214,10 @@ export class PostGeneralComponent implements OnInit, OnDestroy {
     event.preventDefault();
   }
 
+  validPostById(postId: number) {
+    this.supabaseService.updateValidPostByIdForm(postId).then(r => {
+      console.log(r)
+    })
+  }
 
 }
