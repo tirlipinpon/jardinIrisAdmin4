@@ -116,8 +116,13 @@ export class PostGeneralComponent implements OnInit, OnDestroy {
     this.image_url = dataToResume.image_url ? dataToResume.image_url : "https://picsum.photos/400/300"
     this.dataTitleSubjectArticle  = dataToResume.url ? dataToResume.url : dataToResume
     this.perplexityService.fetchData(this.getPromptService.getPromptResumeArticle(dataToResume.url ? dataToResume.url : dataToResume)).then(async (resumedArticleFetch: any) => {
+
       const articleFormatedInHtml = await this.perplexityService.fetchData(this.getPromptService.getPromptGenericArticleInHtml(resumedArticleFetch.choices[0].message.content))
       this.formatedDataArticleForPost = this.formatDataForPost(articleFormatedInHtml.choices[0].message.content)
+
+      const articleLInkedToArticleInHtml = await this.addInternalLInkToArticleInHtml(this.formatedDataArticleForPost)
+      this.formatedDataArticleForPost = extractHTMLBlock(articleLInkedToArticleInHtml.choices[0].message.content)
+
       this.processDataInJson()
     })
   }
@@ -150,9 +155,14 @@ export class PostGeneralComponent implements OnInit, OnDestroy {
     })
   }
 
+  async addInternalLInkToArticleInHtml(articleInHtml: string) {
+    const listTitreId = await this.supabaseService.getPostTitreAndId()
+    return await this.perplexityService.fetchData(this.getPromptService.getPromptGenericAddInternalLinkInArticle(articleInHtml, listTitreId))
+  }
+
   async updateImageUrlResizedAndIdeaPost(lastIdPost: number) {
     if (this.precisionArticle.id || this.url_post.length) {
-      this.image_url = await this.openaiService.imageGenerartor(this.textPromptImage + this.precisionArticle.description + ' dans ce style ci : ' + this.getStyleForToday(getRandomIntInclusive(1, 31)))
+      this.image_url = await this.openaiService.imageGenerartor(this.textPromptImage + this.precisionArticle.description + ' dans ce style ci : Hyper réaliste comme une photo')
       this.image_url = await compressImage(this.image_url, 500, 300)
       await this.supabaseService.updateImageUrlPostByIdForm(lastIdPost, this.image_url).then(async (lastPost: Post[]) => {
         this.postForm.patchValue(lastPost[0]);
@@ -203,7 +213,6 @@ export class PostGeneralComponent implements OnInit, OnDestroy {
     if (this.postForm.valid) {
       this.isLoading = true;
       this.supabaseService.updatePostByPostForm(this.postForm.value).then((response) => {
-        console.log(response)
         this.isLoading = false;
       });
     }

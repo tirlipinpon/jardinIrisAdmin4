@@ -201,7 +201,6 @@ export class SupabaseService {
     }
   }
 
-
   async updateImageUrlPostByIdForm(idPost: number, json64: string) {
     try {
       const { data, error } = await this.supabase
@@ -219,6 +218,23 @@ export class SupabaseService {
     }
   }
 
+  async getPostTitreAndId() {
+    try {
+      let query = this.supabase
+        .from('post')
+        .select('id, titre')
+        .eq('valid', true)
+        .eq('deleted', false)
 
+      const { data, error } = await query;
+
+      if (error) {
+        throw error;
+      }
+      return data;
+    } catch (error) {
+      throw error;
+    }
+  }
 
 }

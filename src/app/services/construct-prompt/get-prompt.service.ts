@@ -76,7 +76,7 @@ export class GetPromptService {
     const prompt = `
   ${article ? ' Voici l article que tu dois utiliser pour remplir les données ci-dessous' + article : ''}
   Tu vas me renvoyer ce JSON valide rempli avec les informations du post. Assure-toi de bien comprendre chaque instruction et d'adapter les réponses au contexte spécifique sans copier les exemples textuels.
-  Ne change pas la structure du json rempli juste les valeurs de chaque clefs présente.
+  Ne change pas la structure du json rempli juste les valeurs de chaque clef présente.
   {"titre":"Titre pertinent pour le post.","description_meteo":"Recherche sur internet pour donner une description de la météo d'aujourd hui à Bruxelles en 40 mots pour la période du ${(morePromptInfo?.get('datePickerStart')?.value && morePromptInfo?.get('datePickerEnd')?.value) ? returnPickerDate : dateSelected}.","phrase_accroche":"Propose une phrase accrocheuse d'environ 35 mots qui incite à lire l'article.","article":"${article ? article : 'Rédige ici l article en HTML valide minifié en une ligne sans espace, selon la structure détaillée ci-dessous pour les paragraphes du post.'}","citation":"Trouve une citation célèbre en lien avec le titre du post.","image_url":"${image_url}","lien_url_article":{"lien1":"Premier lien utilisé pour rédiger le post.","lien2":"Deuxième lien utilisé pour rédiger le post."},"categorie":"Choisis une catégorie pertinente parmi:${afficherCategories(', ')}."}
 
   Structure du contenu pour la clé "article" :
@@ -226,5 +226,45 @@ export class GetPromptService {
     const prompt = `${precisionArticle}`
     return prompt;
   }
+
+
+  getPromptGenericAddInternalLinkInArticle(article: any, listTitreId: any): any {
+    return {
+      systemRole: {
+        role: "system",
+        content: this.getPromptSystemAddInternalLinkInArticle()
+      },
+      userRole: {
+        role: "user",
+        content: this.getPromptUserAddInternalLinkInArticle(article, listTitreId)
+      }
+    }
+  }
+  getPromptSystemAddInternalLinkInArticle(){
+    const prompt = `Tu vas lire un JSON contenant une liste de "titre" et "id".
+    Ta tâche est de trouver dans un article fourni les mots importants qui pourraient être liés à un des articles de ce JSON.
+    Entoure chaque mot pertinent d'une balise HTML "<a>" pour faire un lien vers un article lié sans modifier le texte de l'article.
+
+    Assure-toi que chaque lien ajouté est unique : un lien vers le même article ne doit apparaître qu'une seule fois dans tout l'article.
+    De plus, limite le nombre de liens à un maximum de 3 par chapitre de l'article pour garantir une bonne lisibilité.
+    Renvoie uniquement l'article fourni avec les liens intégrés.`
+    return prompt;
+  }
+
+  getPromptUserAddInternalLinkInArticle(article: string, listTitreId: any): string {
+    const prompt: string = `J'ai un tableau en JSON contenant des articles avec les champs "titre" et "id", que voici : ${JSON.stringify(listTitreId)}
+    Je dispose également de l'article suivant : ${JSON.stringify(article)}
+
+    Ta tâche est de trouver dans cet article des mots pertinents qui peuvent être liés aux articles de mon JSON, puis d'entourer chaque correspondance détectée avec un lien en utilisant la structure suivante :
+    <a href="https://jardin-iris.be/blog-detail.html?post={id du json}" id="{id du json}" title="{titre du json}">mot clé</a>
+
+    Règles :
+    - Chaque lien vers un article doit être unique : un même article du JSON ne peut être lié qu'une seule fois dans l'article complet.
+    - Limite le nombre de liens à un maximum de 3 par chapitre pour éviter une surcharge de liens.
+
+    Renvoie uniquement l'article modifié avec les liens intégrés, sans ajouter d’autres informations.`
+    return prompt;
+  }
+
 
 }
