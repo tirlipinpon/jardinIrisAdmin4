@@ -41,7 +41,7 @@ export  function compressImage(base64Str: any, maxWidth = 800, maxHeight = 600):
           ctx.drawImage(img, 0, 0, width, height);
 
           // Obtenir l'image redimensionnée au format base64
-          resolve(canvas.toDataURL('image/jpeg', 0.7)); // Compression à 70%
+          resolve(canvas.toDataURL('image/jpeg', 0.9)); // Compression à 70%
         } else {
           reject("Erreur : Impossible de récupérer le contexte 2D du canvas.");
         }

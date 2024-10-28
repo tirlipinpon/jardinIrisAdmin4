@@ -243,7 +243,7 @@ export class GetPromptService {
   getPromptSystemAddInternalLinkInArticle(){
     const prompt = `Tu vas lire un JSON contenant une liste de "titre" et "id".
     Ta tâche est de trouver dans un article fourni les mots importants qui pourraient être liés à un des articles de ce JSON.
-    Entoure chaque mot pertinent d'une balise HTML "<a>" pour faire un lien vers un article lié sans modifier le texte de l'article.
+    Entoure chaque mot pertinent d'une balise HTML "<a class="myTooltip" href="https://jardin-iris.be/blog-detail.html?post={id du json}" id="{id du json}" title="{titre du json}">{mot clé}<span class="tooltiptext">{titre du json}</span></a>" pour faire un lien vers un article lié sans modifier le texte de l'article.
 
     Assure-toi que chaque lien ajouté est unique : un lien vers le même article ne doit apparaître qu'une seule fois dans tout l'article.
     De plus, limite le nombre de liens à un maximum de 3 par chapitre de l'article pour garantir une bonne lisibilité.
@@ -256,13 +256,13 @@ export class GetPromptService {
     Je dispose également de l'article suivant : ${JSON.stringify(article)}
 
     Ta tâche est de trouver dans cet article des mots pertinents qui peuvent être liés aux articles de mon JSON, puis d'entourer chaque correspondance détectée avec un lien en utilisant la structure suivante :
-    <a href="https://jardin-iris.be/blog-detail.html?post={id du json}" id="{id du json}" title="{titre du json}">mot clé</a>
+    <a class="myTooltip" href="https://jardin-iris.be/blog-detail.html?post={id du json}" id="{id du json}" title="{titre du json}">{mot clé}<span class="tooltiptext">{titre du json}</span></a>
 
     Règles :
     - Chaque lien vers un article doit être unique : un même article du JSON ne peut être lié qu'une seule fois dans l'article complet.
     - Limite le nombre de liens à un maximum de 3 par chapitre pour éviter une surcharge de liens.
 
-    Renvoie uniquement l'article modifié avec les liens intégrés, sans ajouter d’autres informations.`
+    Renvoie uniquement l'article avec les liens intégrés, sans ajouter d’autres informations.`
     return prompt;
   }
 
