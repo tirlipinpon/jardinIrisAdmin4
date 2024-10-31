@@ -185,16 +185,17 @@ export class GetPromptService {
   getPromptUserFormatArticleInHtml(article: string): string {
     const prompt: string = `
       "Pour cet article : ${article}, structure chaque partie en utilisant les balises HTML suivantes, en veillant à respecter scrupuleusement chaque règle :
-        1. Entoure chaque partie d'un paragraphe avec une balise <span> avec un ID unique et incrémenté, comme <span id='paragraphe-1'>, puis <span id='paragraphe-2'>, etc., pour faciliter le style et l'accessibilité.
+        1. Entoure chaque partie d'un paragraphe avec une balise <span> pour faciliter le style et l'accessibilité.
         2. Insère une balise <br id='link_to_service'> **précisément entre le troisième et quatrième paragraphe**, sans exception, pour créer une séparation visuelle.
         3. Chaque paragraphe commence par un titre accrocheur dans une balise <h4>, accompagné d'un emoji illustrant le sujet du paragraphe.
         4. Mette en évidence une phrase clé dans chaque paragraphe en l'entourant de balises <b> pour attirer l'attention.
         5. Adapte la mise en forme pour chaque type de contenu :
-           - Pour une liste, utilise <ul><li></li></ul>.
+           - Pour une liste, utilise <ol><li></li></ol>.
            - Pour souligner des informations spécifiques, utilise <u>.
            - Pour des termes importants, utilise <em>.
            - Pour un format tabulaire, utilise <table><tr><td></td></tr></table>.
-        6. La structure HTML doit être **parfaitement valide**, sans ajouter d'éléments superflus pour que l'intégration directe dans la page HTML soit possible. Respecte strictement toutes les consignes pour chaque paragraphe."
+        6. La structure HTML doit être **parfaitement valide**, sans ajouter d'éléments superflus pour que l'intégration directe dans la page HTML soit possible.
+        Respecte strictement toutes les consignes pour chaque paragraphe."
         `
       return prompt;
   }
@@ -267,7 +268,7 @@ export class GetPromptService {
   }
 
 
-  getPromptGenericSelectKeyWordsFromChapitresInArticle(titreArticle: string) {
+  getPromptGenericSelectKeyWordsFromChapitresInArticle(titreArticle: string, chapitreKeyWordList: string[]) {
     return {
       systemRole: {
         role: "system",
@@ -275,7 +276,7 @@ export class GetPromptService {
       },
       userRole: {
         role: "user",
-        content: this.getPerplexityPromptUserSelectKeyWordsFromChapitresInArticle(titreArticle)
+        content: this.getPerplexityPromptUserSelectKeyWordsFromChapitresInArticle(titreArticle, chapitreKeyWordList)
       }
     }
   }
@@ -288,9 +289,10 @@ export class GetPromptService {
     return prompt;
   }
 
-  getPerplexityPromptUserSelectKeyWordsFromChapitresInArticle(titreArticle: string){
+  getPerplexityPromptUserSelectKeyWordsFromChapitresInArticle(titreArticle: string, chapitreKeyWordList: string[]){
     const prompt = `Voici le titre: ${titreArticle}.
-    Extrait un seul mot en anglais qui résume le mieux le contenu, en suivant ce format JSON: {"keyWord":"{mot}"}.`
+    Extrait un seul mot en anglais qui résume le mieux le contenu, en suivant ce format JSON: {"keyWord":"{mot}"}.
+    Si la liste n'est pas vide : ( ${chapitreKeyWordList} ), choisi un autre mot que ceux qui sont deja dans cette liste.`
     return prompt;
   }
 
@@ -313,7 +315,8 @@ export class GetPromptService {
             Ta tâche consiste à lire un texte.
             En analysant le contenu du texte, identifie les thèmes, le ton, et les éléments visuels ou concepts clés qui pourraient être illustrés.
             À partir d'une liste d'URL d'images, trouve celle qui représente le mieux le contenu de ce texte,
-            en considérant l'aspect narratif et la cohérence avec le style du texte.`
+            en considérant l'aspect narratif et la cohérence avec le style du texte.
+            Si tu ne trouve pas d'image adaptée ne donne pas de réponse`
     return prompt;
   }
 
@@ -321,6 +324,7 @@ export class GetPromptService {
     const prompt = `Voici le texte  : ${article}, ainsi qu'une liste d'URL d'images ${JSON.stringify(images)}.
             Analyse le contenu du texte pour en extraire les thèmes et concepts principaux, et choisis l'image la plus représentative de cette partie du texte destinée sur un blog de jardinier.
             Assure-toi que l'image sélectionnée illustre bien l'ambiance et les éléments visuels pertinents.
+            Si il n y a pas d'image adapté renvoie une url vide.
             Donne l'url de l'image choisie en suivant ce format JSON: {"imageUrl":"{url}"}`
     return prompt;
   }

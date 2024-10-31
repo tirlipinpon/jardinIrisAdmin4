@@ -18,6 +18,7 @@ import {FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators} fr
 import {formatCurrentDateUs} from "../../utils/getFormattedDate";
 import {Editor, NgxEditorModule, Toolbar} from "ngx-editor";
 import {UnsplashService} from "../../services/api-image/unsplash.service";
+import {CathegoriesBlog} from "../../shared/types/cathegorie";
 
 @Component({
   selector: 'app-post-general',
@@ -141,6 +142,23 @@ export class PostGeneralComponent implements OnInit, OnDestroy {
       });
   }
 
+  addIdToSpansWithInnerH4(htmlString: string): string {
+    let idCounter = 1;
+    // Regex pour capturer les <span> contenant un <h4> à l'intérieur
+    const modifiedHtmlString = htmlString.replace(
+      /<span>([\s\S]*?<h4>[\s\S]*?)<\/span>/g,
+      (match, spanContent) => {
+        console.log(`Match trouvé : ${match}`); // Log chaque match trouvé
+        const spanWithId = `<span id="paragraphe-${idCounter}">${spanContent}</span>`;
+        console.log(`Span avec ID ajouté : ${spanWithId}`); // Log du <span> modifié avec ID
+        idCounter++; // Incrémenter l'ID
+        return spanWithId; // Retourne le <span> modifié
+      }
+    );
+    console.log("Texte HTML modifié avec IDs :", modifiedHtmlString); // Log du texte final
+    return modifiedHtmlString;
+  }
+
   async processArticle(dataToResume: any) {
     this.dataToResume = dataToResume
     this.image_url = dataToResume.image_url ? dataToResume.image_url : "https://picsum.photos/400/300"
@@ -158,7 +176,8 @@ export class PostGeneralComponent implements OnInit, OnDestroy {
   }
 
   formatDataForPost(dataToFormat: any) {
-    const extractedHTMLBlock = extractHTMLBlock(dataToFormat)
+    const addIdToSpansWithFollowingH4 = this.addIdToSpansWithInnerH4(dataToFormat)
+    const extractedHTMLBlock = extractHTMLBlock(addIdToSpansWithFollowingH4)
     const escapedHtmlForJson = escapeHtmlForJson(extractedHTMLBlock)
     const inLinedString = inLineString(escapedHtmlForJson)
     return inLinedString;
@@ -173,7 +192,7 @@ export class PostGeneralComponent implements OnInit, OnDestroy {
         console.error('Erreur lors du parsing JSON ou traitement :', error);
         setTimeout(() => { this.processArticle(this.dataToResume); }, 1000);
       }
-      parsedInJson.article = this.formatedDataArticleForPost
+      parsedInJson.article = this.addLinkToServiceInString(this.formatedDataArticleForPost, parsedInJson.categorie)
       // TODO: if article viens de theNewsApi donc if (!this.precisionArticle.id) alors generer extra image pour illustration mais attention si url_post est la
       this.supabaseService.setNewPostForm(mapToPost(parsedInJson)).then(async (lastPost: Post[]) => {
         await this.updateImageUrlResizedAndIdeaPost(lastPost[0].id);
@@ -198,18 +217,15 @@ export class PostGeneralComponent implements OnInit, OnDestroy {
   }
 
   extractByPositionH4Title(texte: string, x: number): string {
-    // Utiliser une expression régulière pour détecter les guillemets simples ou doubles
     const regex = new RegExp(`<span[^>]*id=["']paragraphe-${x}["'][^>]*>\\s*<h4>(.*?)</h4>`, 'i');
     const match = texte.match(regex);
-
-    // Vérifier si un match est trouvé et retourner le contenu de <h4>
     return match ? match[1] : '';
   }
 
 
   async getKeyWordsFromChapitreInArticle(article: Post) {
+    let chapitreKeyWordList: string[] = []
     for (let i=1; i<=6; i++) {
-
       const chapitreId = i;
       let chapitreKeyWord = "";
       const extractedTitle = this.extractByPositionH4Title(article.article, chapitreId)
@@ -219,7 +235,7 @@ export class PostGeneralComponent implements OnInit, OnDestroy {
       if(extractedTitle.length) {
         try {
           // Selection des images par le titre et des mots-clés
-          const prompt = this.getPromptService.getPromptGenericSelectKeyWordsFromChapitresInArticle(extractedTitle);
+          const prompt = this.getPromptService.getPromptGenericSelectKeyWordsFromChapitresInArticle(extractedTitle, chapitreKeyWordList);
           const response = await this.perplexityService.fetchData(prompt);
           // Vérification et parsing de la réponse
           let resp;
@@ -232,6 +248,7 @@ export class PostGeneralComponent implements OnInit, OnDestroy {
           }
           // Récupération des images depuis Unsplash
           const unsplashResponse = await this.unsplashService.getUnsplashApi(chapitreKeyWord);
+          chapitreKeyWordList.push(chapitreKeyWord)
           const respImagesUrl = this.unsplashService.mapperUrlImage(unsplashResponse);
           // Vérification si l'URL d'image existe
           if (!respImagesUrl || !respImagesUrl.regularUrls) {
@@ -265,6 +282,74 @@ export class PostGeneralComponent implements OnInit, OnDestroy {
     }
 
 
+  }
+
+  addLinkToServiceInString(htmlContent: string, category: string): string {
+    // Ajoute la balise <br id="link_to_service"> après le <span id="paragraphe-3">
+    const spanRegex = /(<span id="paragraphe-3">[\s\S]*?<\/span>)/;
+    const updatedContent = htmlContent.replace(spanRegex, (match) => {
+      return `${match}<br id="link_to_service">`;
+    });
+
+
+    // Définition des liens selon la catégorie
+    const links: { [key: string]: string[] } = {
+      potager: [
+        "https://jardin-iris.be/jardinier-paysagiste-service/culture-potagere.html"
+      ],
+      fleur: [
+        "https://jardin-iris.be/jardinier-paysagiste-service/plantations.html"
+      ],
+      écologie: [
+        "https://jardin-iris.be/jardinier-paysagiste-service/creation-amenagement-de-jardin.html"
+      ],
+      plante: [
+        "https://jardin-iris.be/jardinier-paysagiste-service/entretien-de-jardin.html"
+      ],
+      nature: [
+        "https://jardin-iris.be/jardinier-paysagiste-service/tonte-de-pelouse.html"
+      ],
+      faune: [
+        "https://jardin-iris.be/jardinier-paysagiste-service/taille-de-haie.html"
+      ],
+      jardin: [
+        "https://jardin-iris.be/jardinier-paysagiste-service/travaux-de-terrassement.html"
+      ],
+      arbre: [
+        "https://jardin-iris.be/jardinier-paysagiste-service/elagage-abatage-d-arbre.html"
+      ]
+    };
+
+    // Vérifie si la catégorie est valide et sélectionne un lien aléatoire
+    const categoryLinks = links[category];
+    if (!categoryLinks) {
+      console.warn("Catégorie invalide");
+      return updatedContent;
+    }
+
+    const randomLink = categoryLinks[Math.floor(Math.random() * categoryLinks.length)];
+
+    // Code HTML du lien à insérer après <br id="link_to_service">
+    const linkHtml = `
+    <div class="col-lg-12 col-md-12 col-sm-12 footer-column">
+      <div class="footer-widget contact-widget">
+        <div class="widget-content">
+          <ul class="contact-info clearfix">
+            <li class="p_relative d_block">
+              <p class="fs_15">
+                <a aria-label="link on web site jardin iri jardinier bruxelles" href="${randomLink}" class="theme-btn btn-one" style="width: 100%; margin: 20px 0 20px 0; padding: 4px 0 5px 0;">
+                  Visitez notre service de jardinage à thème ${category} que nous proposons.
+                </a>
+              </p>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  `;
+
+    // Insertion du lien après la balise <br id="link_to_service">
+    return updatedContent.replace(/<br id="link_to_service">/, `<br id="link_to_service">${linkHtml}`);
   }
 
 
