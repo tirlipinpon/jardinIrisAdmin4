@@ -12,8 +12,7 @@ export function  mapToPost(data: any): Post {
     categorie: data.categorie || '',
     visite: data.visite || 0,
     valid: data.valid || false,
-    deleted: data.deleted || false,
-    video: data.video || ''
+    deleted: data.deleted || false
   };
 
   if (data.id) {

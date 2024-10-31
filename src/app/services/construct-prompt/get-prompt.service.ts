@@ -122,7 +122,7 @@ export class GetPromptService {
       userRole: {
         "role": "user",
         "content": `"Réécris l'article disponible ici : "${linkArticle}",
-        structure le texte en 6 chapitres minimum 100 mots chacun avec un titre pour chaque chapitre de +- 10 mots qui donne une accroche"
+        structure le texte en 6 chapitres minimum 150 mots chacun avec un titre pour chaque chapitre de +- 10 mots qui donne une accroche"
     `
       }
     }
@@ -183,20 +183,20 @@ export class GetPromptService {
   // structurer un article en utilisant des balises HTML spécifiques.
   // <span>, <h4>, <b>, et <ul> pour une mise en forme efficace et lisible.
   getPromptUserFormatArticleInHtml(article: string): string {
-    const prompt: string = `"Pour cet article : ${article}, structure le texte de chaque partie en utilisant les balises HTML suivantes :
-      1. Entoure chaque partie avec une balise <span> pour faciliter le style et l'accessibilité.
-      2. Insère une balise <br id='link_to_service'> entre le troisième et la quatrième partie pour créer une séparation visuelle.
-      3. Chaque partie doit commencer par un titre accrocheur dans une balise <h4>, avec un emoji qui illustre le sujet du paragraphe.
-      4. Mette en évidence une phrase clé dans chaque paragraphe en l'entourant avec des balises <b> pour attirer l'attention.
-      5. Utilise une mise en forme adaptée à chaque paragraphe pour améliorer la lisibilité :
-         - Si le contenu est une liste, utilise les balises <ul><li></li></ul>.
-         - Si des informations spécifiques doivent être soulignées, utilise la balise <u>.
-         - Pour des termes importants, utilise la balise <em>.
-         - Si des informations se prêtent à un format tabulaire, organise-les avec des balises <table><tr><td></td></tr></table>.
-      6. Adapte la mise en forme de chaque paragraphe en fonction du contenu, pour rendre le texte plus compréhensible, aéré et agréable à lire."
-      Attention le tout doit être dans un html valide. pour pouvoir le rajouter sur ma page html, donc ne rajoute rien d'autre.
-`
-    return prompt;
+    const prompt: string = `
+      "Pour cet article : ${article}, structure chaque partie en utilisant les balises HTML suivantes, en veillant à respecter scrupuleusement chaque règle :
+        1. Entoure chaque partie d'un paragraphe avec une balise <span> avec un ID unique et incrémenté, comme <span id='paragraphe-1'>, puis <span id='paragraphe-2'>, etc., pour faciliter le style et l'accessibilité.
+        2. Insère une balise <br id='link_to_service'> **précisément entre le troisième et quatrième paragraphe**, sans exception, pour créer une séparation visuelle.
+        3. Chaque paragraphe commence par un titre accrocheur dans une balise <h4>, accompagné d'un emoji illustrant le sujet du paragraphe.
+        4. Mette en évidence une phrase clé dans chaque paragraphe en l'entourant de balises <b> pour attirer l'attention.
+        5. Adapte la mise en forme pour chaque type de contenu :
+           - Pour une liste, utilise <ul><li></li></ul>.
+           - Pour souligner des informations spécifiques, utilise <u>.
+           - Pour des termes importants, utilise <em>.
+           - Pour un format tabulaire, utilise <table><tr><td></td></tr></table>.
+        6. La structure HTML doit être **parfaitement valide**, sans ajouter d'éléments superflus pour que l'intégration directe dans la page HTML soit possible. Respecte strictement toutes les consignes pour chaque paragraphe."
+        `
+      return prompt;
   }
 
 
@@ -243,7 +243,7 @@ export class GetPromptService {
   getPromptSystemAddInternalLinkInArticle(){
     const prompt = `Tu vas lire un JSON contenant une liste de "titre" et "id".
     Ta tâche est de trouver dans un article fourni les mots importants qui pourraient être liés à un des articles de ce JSON.
-    Entoure chaque mot pertinent d'une balise HTML "<a class="myTooltip" href="https://jardin-iris.be/blog-detail.html?post={id du json}" id="{id du json}" title="{titre du json}">{mot clé}<span class="tooltiptext">{titre du json}</span></a>" pour faire un lien vers un article lié sans modifier le texte de l'article.
+    Entoure chaque mot pertinent d'une balise HTML "<a class="myTooltip" href="https://jardin-iris.be/blog-detail.html?post={id du json}" id="{id du json}" title="{titre du json}">{mot clé}</a>" pour faire un lien vers un article lié sans modifier le texte de l'article.
 
     Assure-toi que chaque lien ajouté est unique : un lien vers le même article ne doit apparaître qu'une seule fois dans tout l'article.
     De plus, limite le nombre de liens à un maximum de 3 par chapitre de l'article pour garantir une bonne lisibilité.
@@ -256,7 +256,7 @@ export class GetPromptService {
     Je dispose également de l'article suivant : ${JSON.stringify(article)}
 
     Ta tâche est de trouver dans cet article des mots pertinents qui peuvent être liés aux articles de mon JSON, puis d'entourer chaque correspondance détectée avec un lien en utilisant la structure suivante :
-    <a class="myTooltip" href="https://jardin-iris.be/blog-detail.html?post={id du json}" id="{id du json}" title="{titre du json}">{mot clé}<span class="tooltiptext">{titre du json}</span></a>
+    <a class="myTooltip" href="https://jardin-iris.be/blog-detail.html?post={id du json}" id="{id du json}" title="{titre du json}">{mot clé}</a>
 
     Règles :
     - Chaque lien vers un article doit être unique : un même article du JSON ne peut être lié qu'une seule fois dans l'article complet.
@@ -265,6 +265,66 @@ export class GetPromptService {
     Renvoie uniquement l'article avec les liens intégrés, sans ajouter d’autres informations.`
     return prompt;
   }
+
+
+  getPromptGenericSelectKeyWordsFromChapitresInArticle(titreArticle: string) {
+    return {
+      systemRole: {
+        role: "system",
+        content: this.getPerplexityPromptSystemSelectKeyWordsFromChapitresInArticle()
+      },
+      userRole: {
+        role: "user",
+        content: this.getPerplexityPromptUserSelectKeyWordsFromChapitresInArticle(titreArticle)
+      }
+    }
+  }
+
+  getPerplexityPromptSystemSelectKeyWordsFromChapitresInArticle(){
+    const prompt = `Je vais effectuer une recherche d'image sur le site Unsplash.com en utilisant un mot-clé unique.
+    Le texte de blog que je vais fournir  et il est crucial que ce mot-clé soit extrait de ce titre.
+    Identifie un mot qui représente le mieux le sujet central ou l'atmosphère de ce titre afin de maximiser la pertinence des images.
+    Ce mot doit résumer efficacement l'essence de ce titre.`
+    return prompt;
+  }
+
+  getPerplexityPromptUserSelectKeyWordsFromChapitresInArticle(titreArticle: string){
+    const prompt = `Voici le titre: ${titreArticle}.
+    Extrait un seul mot en anglais qui résume le mieux le contenu, en suivant ce format JSON: {"keyWord":"{mot}"}.`
+    return prompt;
+  }
+
+
+  getPromptGenericSelectBestImageForChapitresInArticle(article: string, images: any) {
+    return {
+      systemRole: {
+        role: "system",
+        content: this.getPerplexityPromptSystemcSelectBestImageForChapitresInArticle()
+      },
+      userRole: {
+        role: "user",
+        content: this.getPerplexityPromptUserSelectBestImageForChapitresInArticle(article, images)
+      }
+    }
+  }
+
+  getPerplexityPromptSystemcSelectBestImageForChapitresInArticle(){
+    const prompt = `Tu es une IA spécialisée dans l'analyse de textes et la sélection d'illustrations adaptées pour un blog de jardinier paysagiste.
+            Ta tâche consiste à lire un texte.
+            En analysant le contenu du texte, identifie les thèmes, le ton, et les éléments visuels ou concepts clés qui pourraient être illustrés.
+            À partir d'une liste d'URL d'images, trouve celle qui représente le mieux le contenu de ce texte,
+            en considérant l'aspect narratif et la cohérence avec le style du texte.`
+    return prompt;
+  }
+
+  getPerplexityPromptUserSelectBestImageForChapitresInArticle(article: string, images: any){
+    const prompt = `Voici le texte  : ${article}, ainsi qu'une liste d'URL d'images ${JSON.stringify(images)}.
+            Analyse le contenu du texte pour en extraire les thèmes et concepts principaux, et choisis l'image la plus représentative de cette partie du texte destinée sur un blog de jardinier.
+            Assure-toi que l'image sélectionnée illustre bien l'ambiance et les éléments visuels pertinents.
+            Donne l'url de l'image choisie en suivant ce format JSON: {"imageUrl":"{url}"}`
+    return prompt;
+  }
+
 
 
 }
