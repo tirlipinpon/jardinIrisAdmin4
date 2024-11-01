@@ -241,29 +241,32 @@ export class GetPromptService {
       }
     }
   }
-  getPromptSystemAddInternalLinkInArticle(){
-    const prompt = `Tu vas lire un JSON contenant une liste de "titre" et "id".
-    Ta tâche est de trouver dans un article fourni les mots importants qui pourraient être liés à un des articles de ce JSON.
-    Entoure chaque mot pertinent d'une balise HTML "<a class="myTooltip" href="https://jardin-iris.be/blog-detail.html?post={id du json}" id="{id du json}" title="{titre du json}">{mot clé}</a>" pour faire un lien vers un article lié sans modifier le texte de l'article.
+  getPromptSystemAddInternalLinkInArticle() {
+    const prompt = `Tu vas recevoir un JSON contenant une liste de "titre" et "id".
+    Ta tâche est de parcourir un article fourni pour identifier des mots-clés pertinents correspondant à un des articles du JSON.
+    Entoure chaque mot pertinent d'une balise HTML "<a class="myTooltip" href="https://jardin-iris.be/blog-detail.html?post={id du json}" id="{id du json}" title="{titre du json}">{mot clé}</a>"
+    a fin de créer un lien interne unique vers un article lié sans modifier le texte original.
 
-    Assure-toi que chaque lien ajouté est unique : un lien vers le même article ne doit apparaître qu'une seule fois dans tout l'article.
-    De plus, limite le nombre de liens à un maximum de 3 par chapitre de l'article pour garantir une bonne lisibilité.
-    Renvoie uniquement l'article fourni avec les liens intégrés.`
+    Règles :
+    - Chaque lien vers un article doit apparaître une seule fois dans l'article entier : ne duplique aucun lien vers le même article.
+    - Limite les liens à 3 maximum par chapitre pour assurer la lisibilité.
+    - Évite les doublons de mots : privilégie les mots les plus spécifiques et représentatifs.
+
+    Retourne uniquement l'article avec les liens intégrés, sans autre information.`;
     return prompt;
   }
 
   getPromptUserAddInternalLinkInArticle(article: string, listTitreId: any): string {
-    const prompt: string = `J'ai un tableau en JSON contenant des articles avec les champs "titre" et "id", que voici : ${JSON.stringify(listTitreId)}
-    Je dispose également de l'article suivant : ${JSON.stringify(article)}
+    const prompt: string = `Voici un tableau JSON avec des articles sous les champs "titre" et "id" : ${JSON.stringify(listTitreId)}
+    L'article suivant doit être enrichi avec des liens internes basés sur ces informations : ${JSON.stringify(article)}
 
-    Ta tâche est de trouver dans cet article des mots pertinents qui peuvent être liés aux articles de mon JSON, puis d'entourer chaque correspondance détectée avec un lien en utilisant la structure suivante :
-    <a class="myTooltip" href="https://jardin-iris.be/blog-detail.html?post={id du json}" id="{id du json}" title="{titre du json}">{mot clé}</a>
+    Ta tâche :
+    - Dans cet article, identifie des mots pertinents qui correspondent aux articles dans le JSON. Pour chaque correspondance, utilise la balise :
+      <a class="myTooltip" href="https://jardin-iris.be/blog-detail.html?post={id du json}" id="{id du json}" title="{titre du json}">{mot clé}</a>
+    - Respecte la règle d'unicité : les articles du JSON peuvent être lié une seule fois dans l'article entier.
+    - Limite chaque chapitre à un maximum de 3 liens pour une lisibilité optimale si il existe assez de liens.
 
-    Règles :
-    - Chaque lien vers un article doit être unique : un même article du JSON ne peut être lié qu'une seule fois dans l'article complet.
-    - Limite le nombre de liens à un maximum de 3 par chapitre pour éviter une surcharge de liens.
-
-    Renvoie uniquement l'article avec les liens intégrés, sans ajouter d’autres informations.`
+    Retourne uniquement l'article avec les liens intégrés, sans autres informations.`;
     return prompt;
   }
 
@@ -292,7 +295,7 @@ export class GetPromptService {
   getPerplexityPromptUserSelectKeyWordsFromChapitresInArticle(titreArticle: string, chapitreKeyWordList: string[]){
     const prompt = `Voici le titre: ${titreArticle}.
     Extrait un seul mot en anglais qui résume le mieux le contenu, en suivant ce format JSON: {"keyWord":"{mot}"}.
-    Si la liste n'est pas vide : ( ${chapitreKeyWordList} ), choisi un autre mot que ceux qui sont deja dans cette liste.`
+    Si la liste n'est pas vide : ( ${chapitreKeyWordList} ) , choisi un autre mot que ceux qui sont deja dans cette liste.`
     return prompt;
   }
 

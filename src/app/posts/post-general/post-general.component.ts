@@ -169,6 +169,7 @@ export class PostGeneralComponent implements OnInit, OnDestroy {
       this.formatedDataArticleForPost = this.formatDataForPost(articleFormatedInHtml.choices[0].message.content)
 
       const articleLInkedToArticleInHtml = await this.addInternalLInkToArticleInHtml(this.formatedDataArticleForPost)
+      console.log('article LInked To Article In Html = ' + articleLInkedToArticleInHtml)
       this.formatedDataArticleForPost = extractHTMLBlock(articleLInkedToArticleInHtml.choices[0].message.content)
 
       this.processDataInJson()
@@ -192,18 +193,41 @@ export class PostGeneralComponent implements OnInit, OnDestroy {
         console.error('Erreur lors du parsing JSON ou traitement :', error);
         setTimeout(() => { this.processArticle(this.dataToResume); }, 1000);
       }
-      parsedInJson.article = this.addLinkToServiceInString(this.formatedDataArticleForPost, parsedInJson.categorie)
+      parsedInJson.article = this.addMyTooltipTextSpanInLink(this.addLinkToServiceInString(this.formatedDataArticleForPost, parsedInJson.categorie))
       // TODO: if article viens de theNewsApi donc if (!this.precisionArticle.id) alors generer extra image pour illustration mais attention si url_post est la
       this.supabaseService.setNewPostForm(mapToPost(parsedInJson)).then(async (lastPost: Post[]) => {
         await this.updateImageUrlResizedAndIdeaPost(lastPost[0].id);
         (!this.precisionArticle.id && !this.url_post.length) ? this.postForm.patchValue(lastPost[0]) : null;
-        await this.getKeyWordsFromChapitreInArticle(lastPost[0])
+        await this.getKeyWordsFromChapitreInArticleAndSetImageUrl(lastPost[0])
         this.chronometreComponent.stopChronometre();
         this.url_post = ''
         this.isLoading = false;
       })
     })
   }
+
+  addMyTooltipTextSpanInLink(htmlContent: string): string {
+    console.debug("Original HTML content:", htmlContent);
+
+    // Expression régulière simplifiée pour capturer les balises <a> avec la classe "myTooltip" et le titre
+    const myTooltipRegex = /<a\s+class="myTooltip"\s+href="([^"]+)"\s+id="([^"]+)"\s+title="([^"]+)">(.*?)<\/a>/g;
+
+    // Parcours et remplacement des occurrences sans modifier href, id, etc.
+    const modifiedContent = htmlContent.replace(myTooltipRegex, (match, href, id, title, linkText) => {
+      console.debug("Processing <a> tag:", { href, id, title, linkText });
+
+      // Générer le <span> avec le contenu du title
+      const tooltipSpan = `<span class="myTooltiptext">${title}</span>`;
+      console.debug("Generated <span>:", tooltipSpan);
+
+      // Retourner la balise <a> avec le <span> ajouté à l'intérieur, après le texte
+      return `<a class="myTooltip" href="${href}" id="${id}" title="${title}">${linkText}${tooltipSpan}</a>`;
+    });
+
+    console.debug("Modified HTML content after processing all <a> tags:", modifiedContent);
+    return modifiedContent;
+  }
+
 
   extractSecondSpanContent(htmlString: string, chapitreId: number): string {
     // Expression régulière pour capturer le contenu de <span> avec l'id correspondant
@@ -223,7 +247,7 @@ export class PostGeneralComponent implements OnInit, OnDestroy {
   }
 
 
-  async getKeyWordsFromChapitreInArticle(article: Post) {
+  async getKeyWordsFromChapitreInArticleAndSetImageUrl(article: Post) {
     let chapitreKeyWordList: string[] = []
     for (let i=1; i<=6; i++) {
       const chapitreId = i;
