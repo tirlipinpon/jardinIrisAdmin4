@@ -113,7 +113,7 @@ export class GetPromptService {
       systemRole: {
         "role": "system",
         "content": `Tu es un expert en rédaction d'articles pour un blog de jardinier paysagiste situé à Bruxelles. Lors de la réécriture,
-     veille à inclure un maximum de détails issus de l'article original, notamment sur les aspects techniques (comme les caractéristiques des plantes, les méthodes de jardinage, etc.),
+     veille à inclure un maximum de détails issus de l'article original, notamment sur les aspects techniques (comme les caractéristiques des plantes, les méthodes de jardinage, chiffres, dates , lieus , statistiques , etc.),
      ainsi que les informations précises concernant les lieux, les noms, les dates et autres éléments contextuels. Permet toi une seule touche d'humour.
      L article doit être clair précis et trés détaillé; cite des exemples ou des cas réél , avec une attention particulière aux enjeux écologiques et aux spécificités locales liées à la nature en Belgique.
     Si l'article d'origine manque de détails sur certains aspects, cherche des informations supplémentaires pertinentes pour enrichir le contenu.
@@ -121,7 +121,7 @@ export class GetPromptService {
       },
       userRole: {
         "role": "user",
-        "content": `"Réécris l'article disponible ici : "${linkArticle}",
+        "content": `"Réécris en gardant toutes les informations de l'article disponible ici : "${linkArticle}",
         structure le texte en 6 chapitres minimum 150 mots chacun avec un titre pour chaque chapitre de +- 10 mots qui donne une accroche"
     `
       }
@@ -242,31 +242,44 @@ export class GetPromptService {
     }
   }
   getPromptSystemAddInternalLinkInArticle() {
-    const prompt = `Tu vas recevoir un JSON contenant une liste de "titre" et "id".
-    Ta tâche est de parcourir un article fourni pour identifier des mots-clés pertinents correspondant à un des articles du JSON.
-    Entoure chaque mot pertinent d'une balise HTML "<a class="myTooltip" href="https://jardin-iris.be/blog-detail.html?post={id du json}" id="{id du json}" title="{titre du json}">{mot clé}</a>"
-    a fin de créer un lien interne unique vers un article lié sans modifier le texte original.
+    const prompt = `Votre tâche est d'insérer des liens hypertextes spécifiques dans un article fourni, en suivant les directives énoncées ici.
+              **Ne modifiez aucune portion du texte de l'article en dehors de l'insertion des liens hypertextes spécifiés**.
 
-    Règles :
-    - Chaque lien vers un article doit apparaître une seule fois dans l'article entier : ne duplique aucun lien vers le même article.
-    - Limite les liens à 3 maximum par chapitre pour assurer la lisibilité.
-    - Évite les doublons de mots : privilégie les mots les plus spécifiques et représentatifs.
+              - Toutes les balises de liens hypertextes doivent être placées exclusivement selon les règles décrites ci-dessous.
 
-    Retourne uniquement l'article avec les liens intégrés, sans autre information.`;
+              1. **Source des Liens**:
+                 - Utilisez le JSON fourni, qui contient une liste d'articles, chacun avec un 'id' et un 'titre'.
+
+              2. **Insertion des Liens**:
+                 - Parcourez le texte de l'article pour localiser les occurrences pertinentes des titres spécifiés dans le JSON.
+                 - Pour chaque titre trouvé, insérez une balise HTML comme suit :
+                   \`<a class=\\"myTooltip\\" href=\\"https://jardin-iris.be/blog-detail.html?post={id}\\" id=\\"{id}\\" title=\\"{titre}\\">{mot_clé}</a>\`.
+                 - Remplissez correctement les placeholders \`{id}\`, \`{titre}\`, et \`{mot_clé}\` avec :
+                   - \`{id}\` : l'identifiant unique de l'article,
+                   - \`{titre}\` : le titre correspondant tiré du JSON,
+                   - \`{mot_clé}\` : le mot ou l'expression de l'article qui correspond.
+
+              3. **Règles de Placement** :
+                 - **Un lien par article**: Un titre du JSON lié à un article spécifique ne peut être relié qu'une seule fois dans tout l'article; aucune répétition de liens pour le même contenu.
+                 - **Limites par section :** Dans chaque section de l'article (exemple : paragraphes délimités), faites en sorte de ne pas insérer plus de trois liens pour éviter de surcharger la lecture.
+                 - **Pas de redondance** : Ne créez pas de liens sur des mots multiples ou expressions qui apparaissent à plusieurs reprises. Privilégiez les occurrences qui sont les plus spécifiques ou représentatives du titre.
+
+              4. **Exactitude et Non-Modification du Texte :**
+                 - Le texte d’origine ne doit pas être modifié à d’autres fins (pas d’ajout ou de modification de contenu autre que celles mentionnées pour y insérer des liens).
+
+              # Output Format
+
+              Retournez l'article sous forme de texte, dans lequel les liens sont insérés conformément aux directives, **sans aucune modification ou adaptation supplémentaire à l'article original en dehors de
+               l’insertion de liens hypertextes**. Assurez-vous que l'output soit proprement formaté et sans ajout d'informations externes.
+`;
     return prompt;
   }
 
   getPromptUserAddInternalLinkInArticle(article: string, listTitreId: any): string {
-    const prompt: string = `Voici un tableau JSON avec des articles sous les champs "titre" et "id" : ${JSON.stringify(listTitreId)}
-    L'article suivant doit être enrichi avec des liens internes basés sur ces informations : ${JSON.stringify(article)}
+    const prompt: string = `Voici un tableau JSON contenant des articles avec les champs 'titre' et 'id' : ${JSON.stringify(listTitreId)}.
+    Voici l'article à traiter : ${JSON.stringify(article)}. Insérez les liens hypertextes conformément aux directives fournies, sans modifier le texte original
+`;
 
-    Ta tâche :
-    - Dans cet article, identifie des mots pertinents qui correspondent aux articles dans le JSON. Pour chaque correspondance, utilise la balise :
-      <a class="myTooltip" href="https://jardin-iris.be/blog-detail.html?post={id du json}" id="{id du json}" title="{titre du json}">{mot clé}</a>
-    - Respecte la règle d'unicité : les articles du JSON peuvent être lié une seule fois dans l'article entier.
-    - Limite chaque chapitre à un maximum de 3 liens pour une lisibilité optimale si il existe assez de liens.
-
-    Retourne uniquement l'article avec les liens intégrés, sans autres informations.`;
     return prompt;
   }
 

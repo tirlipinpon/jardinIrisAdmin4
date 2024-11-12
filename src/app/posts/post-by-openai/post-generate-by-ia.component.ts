@@ -27,7 +27,7 @@ export class PostGenerateByIaComponent {
   }
 
   clickToGenerate() {
-    this.theNewsApiService.getNewsApi().subscribe((news) => {
+    this.theNewsApiService.getNewsApi(1).subscribe((news) => {
       let newsData = this.theNewsApiService.mapperNewsApi(news)
       // TODO: step 1
       this.stepValue = 1;

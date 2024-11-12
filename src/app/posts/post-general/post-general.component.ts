@@ -59,6 +59,7 @@ export class PostGeneralComponent implements OnInit, OnDestroy {
     ["text_color", "background_color"],
     ["align_left", "align_center", "align_right", "align_justify"],
   ];
+  cptSearchArticle = 0
   protected readonly formatCurrentDateUs = formatCurrentDateUs;
   @ViewChild(ChronometreComponent) chronometreComponent!: ChronometreComponent;
 
@@ -127,6 +128,7 @@ export class PostGeneralComponent implements OnInit, OnDestroy {
     this.editor.destroy();
   }
 
+  // start
   async process() {
     this.chronometreComponent.startChronometre()
     this.isLoading = true;
@@ -134,10 +136,17 @@ export class PostGeneralComponent implements OnInit, OnDestroy {
   }
 
   async searchArticleValide() {
-    const dataMappedFromTheNewsApi = this.theNewsApiService.mapperNewsApi(await lastValueFrom(this.theNewsApiService.getNewsApi()))
+    this.cptSearchArticle++;
+    const dataMappedFromTheNewsApi = this.theNewsApiService.mapperNewsApi(await lastValueFrom(this.theNewsApiService.getNewsApi(this.cptSearchArticle)))
     const dataFromOpenAiSelectionArticle: any = await this.perplexityService.fetchData(this.getPromptService.getPromptSelectArticle(dataMappedFromTheNewsApi))
     const resultMappedArticles = JSON.parse(extractJSONBlock(dataFromOpenAiSelectionArticle.choices[0].message.content))
-    resultMappedArticles.valide ? await this.processArticle(resultMappedArticles) : this.getIdeaPost()
+    if (this.cptSearchArticle < 2 && !resultMappedArticles.valide) {
+      await this.searchArticleValide();
+    } else if (resultMappedArticles.valide) {
+       await this.processArticle(resultMappedArticles)
+    } else {
+      this.getIdeaPost()
+    }
   }
 
   getIdeaPost(){
@@ -170,7 +179,7 @@ export class PostGeneralComponent implements OnInit, OnDestroy {
     this.image_url = dataToResume.image_url ? dataToResume.image_url : "https://picsum.photos/400/300"
     this.dataTitleSubjectArticle  = dataToResume.url ? dataToResume.url : dataToResume
     this.perplexityService.fetchData(this.getPromptService.getPromptResumeArticle(dataToResume.url ? dataToResume.url : dataToResume)).then(async (resumedArticleFetch: any) => {
-
+      console.log("resumedArticleFetch = ", resumedArticleFetch.choices[0].message.content)
       const articleFormatedInHtml = await this.perplexityService.fetchData(this.getPromptService.getPromptGenericArticleInHtml(resumedArticleFetch.choices[0].message.content))
       this.formatedDataArticleForPost = this.formatDataForPost(articleFormatedInHtml.choices[0].message.content)
 
