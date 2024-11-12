@@ -101,6 +101,12 @@ export class PostGeneralComponent implements OnInit, OnDestroy {
               private unsplashService: UnsplashService) {
   }
 
+  testAssistant() {
+    this.openaiService.testAssistant().then(r => {
+      console.log("testAssistant")
+    })
+  }
+
   ngOnInit() {
     this.editor = new Editor();
     this.postForm = this.fb.group({

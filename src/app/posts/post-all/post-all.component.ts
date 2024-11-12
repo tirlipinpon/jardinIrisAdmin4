@@ -41,23 +41,6 @@ export class PostAllComponent implements OnInit, AfterViewChecked {
     this.addClickEventAccordionArticle('accordionComments')
   }
 
-  // fetchUrl(){
-  //   fetch("https://jardin-iris.be") // Remplacez par l'URL de votre choix
-  //     .then(response => {
-  //       console.log('dans le the du fetch')
-  //       if (!response.ok) {
-  //         throw new Error('Network response was not ok');
-  //       }
-  //       return response.text(); // Récupère le contenu HTML
-  //     })
-  //     .then(html => {
-  //       console.log(html); // Affiche le HTML dans la console
-  //     })
-  //     .catch(error => {
-  //       console.error('There was a problem with the fetch operation:', error);
-  //     });
-  // }
-
   addClickEventAccordionArticle(classSelectorName: string) {
     // Récupérer tous les éléments ayant la classe "accordion"
     const acc: NodeListOf<HTMLElement> = document.querySelectorAll("."+classSelectorName);

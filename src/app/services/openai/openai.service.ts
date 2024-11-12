@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import OpenAI from "openai";
 import {getFormattedFullDateTime} from "../../utils/getFormattedDate";
 import {environment} from "../../../../environment";
-import {consoleLog} from "../../utils/consoleLog";
+
 @Injectable({
   providedIn: 'root'
 })
@@ -12,6 +12,14 @@ export class OpenaiService {
     apiKey: environment.openAiApiKey
   });
   constructor() { }
+
+  async testAssistant(){
+    const myAssistant = await this.openai.beta.assistants.retrieve(
+      "asst_Zaby7oU07aPrFgtETtow6iS6"
+    );
+
+    console.log(myAssistant);
+  }
 
   async  callMainOpenAiResumeArticle(weatherData: any, url_post: string, urlImage?: string) {
     const completion = await this.openai.chat.completions.create({

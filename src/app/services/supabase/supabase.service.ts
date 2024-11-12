@@ -70,6 +70,7 @@ export class SupabaseService {
       let query = this.supabase
         .from('comments')
         .select('*')
+        .order('id', { ascending: true });
 
       const { data, error } = await query;
 
