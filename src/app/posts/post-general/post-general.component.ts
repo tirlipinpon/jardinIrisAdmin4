@@ -140,6 +140,7 @@ export class PostGeneralComponent implements OnInit, OnDestroy {
     const dataMappedFromTheNewsApi = this.theNewsApiService.mapperNewsApi(await lastValueFrom(this.theNewsApiService.getNewsApi(this.cptSearchArticle)))
     const dataFromOpenAiSelectionArticle: any = await this.perplexityService.fetchData(this.getPromptService.getPromptSelectArticle(dataMappedFromTheNewsApi))
     const resultMappedArticles = JSON.parse(extractJSONBlock(dataFromOpenAiSelectionArticle.choices[0].message.content))
+    console.log("resultMappedArticles= ", resultMappedArticles)
     if (this.cptSearchArticle < 2 && !resultMappedArticles.valide) {
       await this.searchArticleValide();
     } else if (resultMappedArticles.valide) {

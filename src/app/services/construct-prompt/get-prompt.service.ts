@@ -16,10 +16,10 @@ export class GetPromptService {
       systemRole: {
         "role": "system",
         "content": `Tu es un assistant expert en évaluation d'articles pour un blog de jardinier paysagiste en Belgique.
-        Ta tâche est d'analyser une liste d'articles pour déterminer s'il y a un article pertinent pour un blog spécialisé dans les thèmes qui se rapproche ou en lien indirect du ${afficherCategories(', ')}. Le blog est destiné à un public en Belgique.
+        Ta tâche est d'analyser une liste d'articles pour déterminer s'il y a un article pertinent pour un blog spécialisé dans les thèmes qui se
+        rapproche ou en lien indirect du ${afficherCategories(', ')}. Le blog est destiné à un public en Belgique.
 
         Critères de pertinence :
-        - L'article doit être adapté au contexte belge.
         - Adaptés à des amateurs ou professionnels.
 
         Si tu trouves un article, retourne **un seul objet JSON** avec les champs suivants :
@@ -77,7 +77,9 @@ export class GetPromptService {
   ${article ? ' Voici l article que tu dois utiliser pour remplir les données ci-dessous' + article : ''}
   Tu vas me renvoyer ce JSON valide rempli avec les informations du post. Assure-toi de bien comprendre chaque instruction et d'adapter les réponses au contexte spécifique sans copier les exemples textuels.
   Ne change pas la structure du json rempli juste les valeurs de chaque clef présente.
-  {"titre":"Titre pertinent pour le post.","description_meteo":"Recherche sur internet pour donner une description de la météo d'aujourd hui à Bruxelles en 40 mots pour la période du ${(morePromptInfo?.get('datePickerStart')?.value && morePromptInfo?.get('datePickerEnd')?.value) ? returnPickerDate : dateSelected}.","phrase_accroche":"Propose une phrase accrocheuse d'environ 35 mots qui incite à lire l'article.","article":"${article ? article : 'Rédige ici l article en HTML valide minifié en une ligne sans espace, selon la structure détaillée ci-dessous pour les paragraphes du post.'}","citation":"Trouve une citation célèbre en lien avec le titre du post.","image_url":"${image_url}","lien_url_article":{"lien1":"Premier lien utilisé pour rédiger le post.","lien2":"Deuxième lien utilisé pour rédiger le post."},"categorie":"Choisis une catégorie pertinente parmi:${afficherCategories(', ')}."}
+  {"titre":"Titre court pertinent pour le post.","description_meteo":"Recherche sur internet pour donner une description de la météo d'aujourd hui à Bruxelles en 40 mots pour
+  la période du ${(morePromptInfo?.get('datePickerStart')?.value && morePromptInfo?.get('datePickerEnd')?.value) ? returnPickerDate : dateSelected}.",
+  "phrase_accroche":"Propose une phrase accrocheuse d'environ 45 mots qui incite à lire l'article.","article":"${article ? article : 'Rédige ici l article en HTML valide minifié en une ligne sans espace, selon la structure détaillée ci-dessous pour les paragraphes du post.'}","citation":"Trouve une citation célèbre en lien avec le titre du post.","image_url":"${image_url}","lien_url_article":{"lien1":"Premier lien utilisé pour rédiger le post.","lien2":"Deuxième lien utilisé pour rédiger le post."},"categorie":"Choisis une catégorie pertinente parmi:${afficherCategories(', ')}."}
 
   Structure du contenu pour la clé "article" :
 
@@ -85,7 +87,7 @@ export class GetPromptService {
   - **Structure détaillée de chaque paragraphe** :
     1. '<h4>Ecris un titre accrocheur du paragraphe {n}</h4>'
     2. '<ul><li>Trouve une question en sous-titre du paragraphe {n} (environ 10 mots)</li></ul>'
-    3. '<div id="paragraphe-{n}"><p>Rédige un texte du paragraphe {n} avec minimum 100 mots et pas moins !</p></div>'
+    3. '<div id="paragraphe-{n}"><p>Rédige un texte du paragraphe {n} avec minimum 150 mots et pas moins !</p></div>'
 
   **Assure-toi que le JSON soit bien valide et respecte cette structure pour la clé "article". Ne copie pas les exemples textuels donnés, mais suis-les comme modèle de structure.**
 `;
