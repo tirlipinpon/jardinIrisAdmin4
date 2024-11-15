@@ -1,1 +1,18 @@
-<p>login-with-form works!</p>
+<form [formGroup]="loginForm" (submit)="save()">
+  <div class="row">
+    <mat-form-field>
+      <mat-label>Enter you email</mat-label>
+      <input matInput placeholder="test@exemple.com" formControlName="email" required>
+    </mat-form-field>
+
+    <mat-form-field>
+      <mat-label>Enter you password</mat-label>
+      <input matInput placeholder="********" type="password" formControlName="password" required>
+    </mat-form-field>
+
+    <button mat-fab extended color="primary" [disabled]="!loginForm.valid">
+      <mat-icon>favorite</mat-icon>
+      log in
+    </button>
+  </div>
+</form>
