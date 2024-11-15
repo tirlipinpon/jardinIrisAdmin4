@@ -1,4 +1,9 @@
-import {ApplicationConfig, importProvidersFrom, provideZoneChangeDetection} from '@angular/core';
+import {
+  ApplicationConfig,
+  importProvidersFrom,
+  provideExperimentalZonelessChangeDetection,
+  provideZoneChangeDetection
+} from '@angular/core';
 import {provideRouter, withComponentInputBinding} from '@angular/router';
 
 import { routes } from './app.routes';
@@ -8,7 +13,8 @@ import {NgxEditorModule} from "ngx-editor";
 
 export const appConfig: ApplicationConfig = {
   providers: [
-    provideZoneChangeDetection({ eventCoalescing: true }),
+    //provideZoneChangeDetection({ eventCoalescing: true }),
+    provideExperimentalZonelessChangeDetection(),
     provideRouter(routes, withComponentInputBinding()),
     importProvidersFrom(BrowserAnimationsModule, NgxEditorModule),
     provideHttpClient()

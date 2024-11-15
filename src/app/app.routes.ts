@@ -1,6 +1,20 @@
 import { Routes } from '@angular/router';
+import {authRoutes} from "./features/auth/components/login-with-form/auth.routes";
 
 export const routes: Routes = [
+  {
+    path: '',
+    redirectTo: 'home',
+    pathMatch: "full"
+  },
+  {
+    path: 'home',
+    loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent)
+  },
+  {
+    path: 'auth',
+    children: authRoutes
+  },
   { path: 'add-new-post',
     loadComponent: () => import('./posts/post-add/post-add.component').then(m => m.PostAddComponent), title: 'ajouter un post'},
   { path: 'get-all-post',
@@ -14,6 +28,7 @@ export const routes: Routes = [
   { path: 'general-post',
     loadComponent: () => import('./posts/post-general/post-general.component').then(m => m.PostGeneralComponent), title: 'post automatique'},
   { path: '**',
-    loadComponent: () => import('./posts/post-all/post-all.component').then(m => m.PostAllComponent)
+    redirectTo: 'auth/login',
+    pathMatch: "full"
   }
 ];
