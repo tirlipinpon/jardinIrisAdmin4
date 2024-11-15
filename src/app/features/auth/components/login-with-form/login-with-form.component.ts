@@ -4,11 +4,12 @@ import {MatFormFieldModule} from "@angular/material/form-field";
 import {MatIconModule} from "@angular/material/icon";
 import {MatInputModule} from "@angular/material/input";
 import {AuthApplication} from "../../services/auth.application";
+import {MatButtonModule} from "@angular/material/button";
 
 @Component({
   selector: 'app-login-with-form',
   standalone: true,
-  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatIconModule],
+  imports: [ReactiveFormsModule, MatFormFieldModule, MatInputModule, MatIconModule, MatButtonModule],
   templateUrl: './login-with-form.component.html',
   styleUrl: './login-with-form.component.css'
 })
