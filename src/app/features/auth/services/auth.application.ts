@@ -1,4 +1,4 @@
-import {effect, inject, Injectable} from "@angular/core";
+import {effect, inject, Injectable, Signal} from "@angular/core";
 import {AuthStore} from "../store";
 import {Router} from "@angular/router";
 
@@ -15,4 +15,11 @@ export class AuthApplication {
   login(login: string, password: string) {
     this.store.logIn({ login, password });
   }
+  get isLoading(): Signal<boolean> {
+    return this.store.isLoading
+  }
+
+  get isAuth(): Signal<any> {
+    return this.store.isAuth;
+}
 }

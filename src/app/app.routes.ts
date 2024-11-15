@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import {authRoutes} from "./features/auth/components/login-with-form/auth.routes";
+import {userIsAuth} from "./features/auth/guard/auth.guard";
 
 export const routes: Routes = [
   {
@@ -9,7 +10,8 @@ export const routes: Routes = [
   },
   {
     path: 'home',
-    loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent)
+    loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent),
+    canActivate: [userIsAuth]
   },
   {
     path: 'auth',
