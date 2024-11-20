@@ -8,7 +8,8 @@ export const userIsAuth: CanActivateFn = (
     application = inject(AuthApplication),
     router = inject(Router)
 ) => {
-  if(!application.isAuth) {
+  const test = application.isAuth()
+  if(!test) {
     router.navigate((['auth/login']))
   }
   return application.isAuth()

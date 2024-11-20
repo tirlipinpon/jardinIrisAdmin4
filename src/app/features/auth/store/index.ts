@@ -6,6 +6,7 @@ import {concatMap, pipe, tap} from "rxjs";
 import {computed, inject} from "@angular/core";
 import {AuthInfraStructure} from "../services/auth.infraStructure";
 import {tapResponse} from "@ngrx/operators";
+import {updateState, withDevtools} from '@angular-architects/ngrx-toolkit';
 
 export interface AuthState {
   user: AuthUser | undefined | null;
@@ -23,14 +24,15 @@ const initialValue: AuthState = {
 // reducer / store
 export const AuthStore = signalStore(
   {providedIn: 'root'},
+  withDevtools('auth'),
   withState(initialValue),
   withComputed(store => ({
-    isAuth: computed(() => store.user())
+    isAuth: computed(() => store.user() !== undefined)
 })),
   withMethods((store, infra = inject(AuthInfraStructure)) =>({
   logIn: rxMethod<AuthType>(
     pipe(
-      tap(()=> patchState(store, {isLoading: true})),
+      tap(()=> updateState(store, 'update loading', {isLoading: true})),
       concatMap(input => {
         return infra.login(input.login, input.password).pipe(
           tapResponse({
@@ -43,3 +45,4 @@ export const AuthStore = signalStore(
   )
   }))
 )
+
