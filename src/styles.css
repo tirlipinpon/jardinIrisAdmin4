@@ -6,3 +6,8 @@
 @import './assets/css/bootstrap.css';
 @import './assets/css/color.css';
 @import './assets/css/loader.css';
+
+div.container {
+  display: flex;
+  justify-content: center;
+}
