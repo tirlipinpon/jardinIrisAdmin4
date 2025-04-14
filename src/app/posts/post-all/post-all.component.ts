@@ -123,7 +123,7 @@ export class PostAllComponent implements OnInit, AfterViewChecked {
     })
   }
   editPostById(postId: number) {
-    this.router.navigate(['/edit-old-post', postId]);
+    this.router.navigate(['home/edit-old-post', postId]);
   }
 
   validPostById(postId: number) {

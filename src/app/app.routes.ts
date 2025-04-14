@@ -11,7 +11,6 @@ export const routes: Routes = [
   {
     path: 'home',
     loadComponent: () => import('./pages/home/home.component').then(m => m.HomeComponent),
-    canActivate: [userIsAuth]
   },
   {
     path: 'auth',
@@ -20,9 +19,9 @@ export const routes: Routes = [
   { path: 'home/add-new-post',
     loadComponent: () => import('./posts/post-add/post-add.component').then(m => m.PostAddComponent), title: 'ajouter un post', canActivate: [userIsAuth]},
   { path: 'home/get-all-post',
-    loadComponent: () => import('./posts/post-all/post-all.component').then(m => m.PostAllComponent), title: 'tous les posts', canActivate: [userIsAuth]},
+    loadComponent: () => import('./posts/post-all/post-all.component').then(m => m.PostAllComponent), title: 'tous les posts'},
   { path: 'home/edit-old-post/:postId',
-    loadComponent: () => import('./posts/post-edit/post-edit.component').then(m => m.PostEditComponent), title: 'éditer un post', canActivate: [userIsAuth]},
+    loadComponent: () => import('./posts/post-edit/post-edit.component').then(m => m.PostEditComponent), title: 'éditer un post'},
   { path: 'home/generate-post',
     loadComponent: () => import('./posts/post-by-openai/post-generate-by-ia.component').then(m => m.PostGenerateByIaComponent), title: 'générer un post', canActivate: [userIsAuth]},
   { path: 'home/asking-post',
